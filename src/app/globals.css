@@ -1,0 +1,63 @@
+@import "tailwindcss";
+
+:root {
+  --color-cream: #faf5ec;
+  --color-cream-soft: #f2e9d8;
+  --color-ink: #221c15;
+  --color-ink-soft: #4a4034;
+  --color-terracotta: #b3512e;
+  --color-terracotta-dark: #8a3c20;
+  --color-olive: #565f42;
+  --color-olive-dark: #3d4530;
+  --color-gold: #c79a4b;
+  --color-line: #e4d8c2;
+}
+
+@theme inline {
+  --color-cream: var(--color-cream);
+  --color-cream-soft: var(--color-cream-soft);
+  --color-ink: var(--color-ink);
+  --color-ink-soft: var(--color-ink-soft);
+  --color-terracotta: var(--color-terracotta);
+  --color-terracotta-dark: var(--color-terracotta-dark);
+  --color-olive: var(--color-olive);
+  --color-olive-dark: var(--color-olive-dark);
+  --color-gold: var(--color-gold);
+  --color-line: var(--color-line);
+  --font-serif: var(--font-fraunces);
+  --font-sans: var(--font-manrope);
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  background: var(--color-cream);
+  color: var(--color-ink);
+  font-family: var(--font-sans), ui-sans-serif, system-ui, sans-serif;
+}
+
+h1, h2, h3, h4,
+.font-serif-heading {
+  font-family: var(--font-serif), ui-serif, Georgia, serif;
+}
+
+::selection {
+  background: var(--color-terracotta);
+  color: var(--color-cream);
+}
+
+.text-balance {
+  text-wrap: balance;
+}
+
+.hero-text-shadow {
+  text-shadow: 0 2px 8px rgba(0, 0, 0, 0.6);
+}
+
+/* Navbar е fixed (не в normal flow) — компенсираме за anchor-linkове,
+   за да не се скрива заглавието на секцията под него при скрол-джъмп. */
+section[id] {
+  scroll-margin-top: 88px;
+}
