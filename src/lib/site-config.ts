@@ -1,217 +1,125 @@
-// PRIVATE CONCEPT DEMO за outreach към Lake House (Пловдив) — не е публикуван
+// PRIVATE CONCEPT DEMO за outreach към Gourmand (Пловдив) — не е публикуван
 // и не се представя никъде като официален сайт, докато собствениците не
 // одобрят и не поемат проекта официално.
 //
-// hero/about/gallery вече са реални снимки на Lake House.
+// Gourmand е квартално място за домашна храна в ж.к. „Христо Ботев“ —
+// работи през деня, за вкъщи и с доставка.
 
 export const siteConfig = {
-  name: "Lake House",
-  tagline: "Крайезерен ресторант в Пловдив",
+  name: "Gourmand",
+  tagline: "Домашна храна за вкъщи и с доставка",
+  heroEyebrow: "Домашна храна · За вкъщи · Пловдив",
   // Форсирани на точно 2 реда в Hero.tsx — не сливай в едно изречение.
-  heroHeadlineLines: ["Вкусът на езерото,", "поднесен по традиция."],
+  heroHeadlineLines: ["Сготвено като у дома", "Пристига топло"],
+  // \u00a0 държи тирето на първия ред, вместо да започва втория.
   heroDescription:
-    "Прясна риба на скара, домашна кухня и топло гостоприемство на брега на Пловдив.",
+    "Домашни ястия от истински продукти, приготвени всеки ден в Пловдив\u00a0– поръчай за вкъщи или офиса, или ги вземи на място от ул. „Гевгели“.",
 
-  // Реален кадър от Lake House — калмари на дървена маса с лимон (същата
-  // снимка е и в галерията).
+  // Фасадата на Gourmand — тента и неонов надпис над входа.
   heroImage: {
-    url: "/gallery/pan-fried-shrimp.jpeg",
+    url: "/hero-storefront.jpg",
     flipped: false,
-    objectPosition: "55% 45%",
+    // На тесни екрани кропът остава около неона и входа.
+    objectPosition: "40% 50%",
   },
 
-  // Реална снимка на терасата на Lake House.
+  // Залата на Gourmand — зелената стена с бар плот и столчета.
   aboutImage: {
-    url: "/gallery/restaurant-terrace.jpeg",
+    url: "/gallery/restaurant-interior.jpg",
   },
 
-  // Реални снимки от кухнята на Lake House.
   galleryImages: [
-    "/gallery/grilled-trout.jpeg",
-    "/gallery/tomato-burrata-salad.png",
-    "/gallery/fried-calamari.png",
-    "/gallery/chicken-skewers.png",
-    "/gallery/pan-fried-shrimp.jpeg",
-    "/gallery/fried-anchovies.jpeg",
+    "/gallery/chicken-potatoes.jpg",
+    "/gallery/salad.jpg",
+    "/gallery/pork-cream-sauce.jpg",
+    "/gallery/grilled-fish.jpg",
+    "/gallery/chicken-vegetables.jpg",
+    "/gallery/stuffed-eggplant.jpg",
   ],
-  city: "Гребна база, Пловдив",
-  cuisine: "Традиционна българска кухня",
+  city: "ж.к. „Христо Ботев“, Пловдив",
+  cuisine: "Домашна храна",
   positioning: "casual-premium", // над средното, не семеен format
   priceRange: "$$–$$$",
 
   contact: {
-    phone: "089 852 7900",
+    phone: "087 892 0254",
     // TODO: реален имейл — да се добави, когато клиентът го предостави.
-    address: "ул. „Ясна поляна“ 2, 4002 Пловдив",
-    mapsUrl: "https://maps.google.com/?q=ul.+Yasna+Polyana+2+Plovdiv+4002",
-    facebookUrl: "https://www.facebook.com/profile.php?id=61584296742245",
+    address: "ул. „Гевгели“ 44, ж.к. „Христо Ботев“, Пловдив",
+    mapsUrl: "https://maps.google.com/?q=ul.+Gevgeli+44+Plovdiv",
+    facebookUrl: "https://www.facebook.com/gourmandplovdiv",
+    // TODO: линк към Instagram профила.
+    instagramUrl: "#",
   },
 
   hours: [
-    { day: "Понеделник – Четвъртък", time: "12:00 – 22:30" },
-    { day: "Петък – Събота", time: "12:00 – 23:30" },
-    { day: "Неделя", time: "12:00 – 21:30" },
-  ], // TODO: реално работно време
+    { day: "Понеделник – Петък", time: "10:00 – 18:15" },
+    { day: "Събота", time: "10:00 – 14:00" },
+    { day: "Неделя", time: "Почивен ден" },
+  ],
+
+  // Същото работно време като hours, но в числа — от него се генерират
+  // часовете за поръчка. Индекс = Date.getDay() (0 = неделя), null = затворено.
+  // Дръж в синхрон с hours.
+  orderHours: [
+    null,
+    { open: "10:00", close: "18:15" },
+    { open: "10:00", close: "18:15" },
+    { open: "10:00", close: "18:15" },
+    { open: "10:00", close: "18:15" },
+    { open: "10:00", close: "18:15" },
+    { open: "10:00", close: "14:00" },
+  ] as ({ open: string; close: string } | null)[],
+  ordering: {
+    // Колко време преди затваряне спираме да приемаме поръчки.
+    lastOrderMinutesBeforeClose: 30,
+    // Най-ранният час за поръчка "за конкретен час" спрямо сега.
+    minLeadMinutes: 45,
+  },
 
   reviews: {
-    rating: 4.8,
-    count: 25,
-    source: "Google",
+    title: "Какво казват клиентите ни",
+    googleUrl: "https://www.google.com/maps/place/?q=place_id:ChIJJ6y0ZE3QrBQR0LqWqOYWWmw",
+    // TODO: реалните имена на авторите.
     testimonials: [
+      // Реални отзиви — цитатите са дословни, не преразказ. Подредени от
+      // най-дългия към най-краткия (изрично искане).
+      // TODO: YMY и Constance G (Google) — могат да заменят картите
+      // „Поръчвам за първи път…“ и „Страхотно място…“, когато има точния им текст.
       {
         quote:
-          "Страхотно попадение! Изключително вкусна храна и много приятни обстановка и обслужване!",
-        author: "Димитър Я.",
+          "Най-добрият ресторант за бърза храна в града. Вкусна храна, учтиво обслужване и приятна атмосфера.",
+        author: "Клиент от Google",
         rating: 5,
       },
       {
+        // opoznai.bg, 2018 — датата нарочно не се показва.
         quote:
-          "Обслужването беше на страхотно ниво - сервитьорите и собственикът бяха изключително мили, усмихнати и гостоприемни. Храната беше невероятно вкусна.",
-        author: "Ейнджи К.",
+          "Много чисто заведение, всеки ден разнообразна и вкусно сготвена храна, учтив персонал.",
+        author: "Rositsa · opoznai.bg",
         rating: 5,
       },
       {
-        quote:
-          "Много благодаря за топлото посрещане, за приятната атмосфера и вкусната храна! Заведението е много добре декорирано, обстановката е уютна и приятна.",
-        author: "Росица Г.",
+        quote: "Много вкусна храна и добро обслужване, какво повече да иска човек!!))",
+        author: "Ася Джарова",
         rating: 5,
       },
       {
-        quote:
-          "Много любезно отношение, вкусна храна и приятна обстановка! Със сигурност ще посетя отново.",
-        author: "Десислава Н.",
+        quote: "Поръчвам за първи път и съм много доволен. Храната е наистина вкусна.",
+        author: "Клиент от Google",
         rating: 5,
       },
       {
-        quote:
-          "Много добро място, храната страшно много ни хареса, а момичето, което ни обслужи беше излючително мило!",
-        author: "Ванеса",
+        quote: "Страхотно място с перфектно обслужване и вкусна храна.",
+        author: "Клиент от Google",
         rating: 5,
       },
       {
-        quote:
-          "Приятно място в близост до гребната. Менюто е с много богат избор, имат рибни и морски предложения, имат и месо.",
-        author: "Мариета М.",
-        rating: 4,
+        quote: "Всичко е идвало топло и вкусно.",
+        author: "Zlatko P",
+        rating: 5,
       },
     ],
   },
-
-  // Реално меню на Lake House. Само текст (без снимки на ястия, изрично
-  // искане) — description полето носи грамажа, не измислена дегустационна
-  // бележка.
-  menuCategories: [
-    {
-      name: "Супи",
-      items: [
-        {
-          name: "Пилешка супа",
-          description: "350г",
-          price: "3.40€",
-        },
-        {
-          name: "Шкембе чорба",
-          description: "350г",
-          price: "3.50€",
-        },
-        {
-          name: "Таратор",
-          description: "350г",
-          price: "2.40€",
-        },
-      ],
-    },
-    {
-      name: "Салати",
-      items: [
-        {
-          name: "Шопска салата",
-          description: "250г",
-          price: "3.30€",
-        },
-        {
-          name: "Гръцка салата",
-          description: "250г",
-          price: "3.50€",
-        },
-        {
-          name: "Зеле с моркови",
-          description: "200г",
-          price: "2.80€",
-        },
-      ],
-    },
-    {
-      name: "Основни ястия",
-      items: [
-        {
-          name: "Леща яхния",
-          description: "350г",
-          price: "3.40€",
-        },
-        {
-          name: "Шницел от кайма с гъби",
-          description: "400г",
-          price: "4.80€",
-        },
-        {
-          name: "Свинско бавно печено в пюре",
-          description: "400г",
-          price: "5.10€",
-        },
-        {
-          name: "Пилешки кюфтета с ориз",
-          description: "400г",
-          price: "5.10€",
-        },
-      ],
-    },
-    {
-      name: "Скара",
-      items: [
-        {
-          name: "Кюфтета с гарнитура",
-          description: "280г",
-          price: "4.60€",
-        },
-        {
-          name: "Кебапчета с гарнитура",
-          description: "280г",
-          price: "4.60€",
-        },
-        {
-          name: "Пилешка пържола",
-          description: "250г",
-          price: "5.40€",
-        },
-        {
-          name: "Свински врат",
-          description: "250г",
-          price: "5.40€",
-        },
-      ],
-    },
-    {
-      name: "Десерти",
-      items: [
-        {
-          name: "Сладолед ваниля",
-          description: "150г",
-          price: "2.60€",
-        },
-        {
-          name: "Диня/пъпеш",
-          description: "300г",
-          price: "2.30€",
-        },
-        {
-          name: "Грис халва",
-          description: "150г",
-          price: "2.30€",
-        },
-      ],
-    },
-  ],
 
   menuPdfUrl: "#", // TODO: линк към пълно меню/PDF
 
@@ -220,7 +128,6 @@ export const siteConfig = {
     { label: "За нас", href: "#about" },
     { label: "Меню", href: "/menu" },
     { label: "Галерия", href: "#gallery" },
-    { label: "Резервирай", href: "#reservation" },
     { label: "Контакти", href: "#contact" },
   ],
 } as const;

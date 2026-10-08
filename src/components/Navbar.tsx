@@ -1,9 +1,11 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { motion } from "framer-motion";
+import { ShoppingBasket } from "lucide-react";
 import { siteConfig } from "@/lib/site-config";
 
 // Anchor секции (#home, #about, ...) съществуват само на homepage-а. Когато
@@ -19,7 +21,7 @@ export function Navbar() {
   const isHome = pathname === "/";
   const [scrolled, setScrolled] = useState(false);
   const [open, setOpen] = useState(false);
-  const navLinks = siteConfig.navigation.filter((item) => item.href !== "#reservation");
+  const navLinks = siteConfig.navigation;
   // Прозрачен navbar с бял текст важи само за hero-а на homepage-а, преди
   // скрол. Всеки друг route няма full-bleed тъмна снимка зад navbar-а.
   const light = isHome && !scrolled;
@@ -43,13 +45,15 @@ export function Navbar() {
       }`}
     >
       <div className="relative mx-auto flex max-w-7xl items-center justify-between px-5 py-5 sm:px-8">
-        <Link
-          href={resolveHref("#home", isHome)}
-          className={`hero-text-shadow font-serif-heading text-xl tracking-tight transition-colors duration-300 ${
-            light && !open ? "text-white" : "text-ink"
-          }`}
-        >
-          {siteConfig.name}
+        <Link href={resolveHref("#home", isHome)} className="flex items-center">
+          <Image
+            src="/logo.png"
+            alt={siteConfig.name}
+            width={645}
+            height={300}
+            priority
+            className="h-11 w-auto lg:h-14"
+          />
         </Link>
 
         <nav className="absolute left-1/2 hidden -translate-x-1/2 lg:flex lg:items-center lg:gap-10">
@@ -60,8 +64,8 @@ export function Navbar() {
               <Link
                 key={item.href}
                 href={resolveHref(item.href, isHome)}
-                className={`hero-text-shadow group relative text-[13px] font-medium uppercase tracking-[0.08em] transition-colors duration-300 ${
-                  light ? "text-white/85 hover:text-white" : "text-ink-soft hover:text-ink"
+                className={`group relative text-[13px] font-medium uppercase tracking-[0.08em] transition-colors duration-300 ${
+                  light ? "hero-text-shadow text-white/85 hover:text-white" : "text-ink-soft hover:text-ink"
                 } ${active ? "text-terracotta" : ""}`}
               >
                 {item.label}
@@ -72,12 +76,14 @@ export function Navbar() {
         </nav>
 
         <div className="flex items-center gap-3">
-          <Link
-            href={resolveHref("#reservation", isHome)}
-            className="rounded-full bg-terracotta px-6 py-2.5 text-[13px] font-semibold tracking-[0.02em] text-cream transition-all duration-300 hover:-translate-y-0.5 hover:bg-terracotta-dark hover:shadow-lg hover:shadow-black/10"
+          {/* TODO: количката — засега без функционалност. */}
+          <button
+            type="button"
+            aria-label="Количка"
+            className="flex h-11 w-11 items-center justify-center rounded-full bg-terracotta text-white transition-all duration-300 hover:-translate-y-0.5 hover:bg-terracotta-dark hover:shadow-lg hover:shadow-black/10"
           >
-            Резервирай
-          </Link>
+            <ShoppingBasket aria-hidden className="h-5 w-5" />
+          </button>
           <button
             aria-label="Меню"
             aria-expanded={open}

@@ -36,6 +36,9 @@ body {
   background: var(--color-cream);
   color: var(--color-ink);
   font-family: var(--font-sans), ui-sans-serif, system-ui, sans-serif;
+  /* lang="bg" включва българските локализирани форми на Manrope (в, д, т
+     изглеждат ръкописни: В, g, m). Изключваме ги за изправена кирилица. */
+  font-feature-settings: "locl" 0;
 }
 
 h1, h2, h3, h4,

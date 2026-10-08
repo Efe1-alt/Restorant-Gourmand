@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { siteConfig } from "@/lib/site-config";
 
 const MONTHS = [
   "Януари", "Февруари", "Март", "Април", "Май", "Юни",
@@ -149,20 +150,23 @@ export function DateCalendar({
 
               const iso = toISODate(cellDate);
               const isPast = cellDate.getTime() <= today.getTime();
+              // Почивните дни (null в orderHours, напр. неделя) не се избират.
+              const isClosed = siteConfig.orderHours[cellDate.getDay()] === null;
+              const isDisabled = isPast || isClosed;
               const isSelected = value === iso;
 
               return (
                 <button
                   key={iso}
                   type="button"
-                  disabled={isPast}
+                  disabled={isDisabled}
                   aria-pressed={isSelected}
                   onClick={() => {
                     onChange(iso);
                     setIsOpen(false);
                   }}
                   className={`mx-auto flex h-9 w-9 items-center justify-center rounded-full text-sm transition-colors duration-200 ${
-                    isPast
+                    isDisabled
                       ? "cursor-not-allowed text-ink-soft/30"
                       : isSelected
                         ? "bg-terracotta font-semibold text-cream"

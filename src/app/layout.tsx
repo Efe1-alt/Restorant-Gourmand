@@ -2,6 +2,8 @@ import type { Metadata } from "next";
 import { Playfair_Display, Manrope } from "next/font/google";
 import { siteConfig } from "@/lib/site-config";
 import { ScrollToTopOnReload } from "@/components/ScrollToTopOnReload";
+import { CartButton } from "@/components/CartButton";
+import { CartProvider } from "@/lib/cart";
 import "./globals.css";
 
 const fraunces = Playfair_Display({
@@ -42,7 +44,10 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
           }}
         />
         <ScrollToTopOnReload />
-        {children}
+        <CartProvider>
+          {children}
+          <CartButton />
+        </CartProvider>
       </body>
     </html>
   );

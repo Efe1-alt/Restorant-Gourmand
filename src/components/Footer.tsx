@@ -1,4 +1,5 @@
 import { siteConfig } from "@/lib/site-config";
+import { FacebookIcon, InstagramIcon } from "./SocialIcons";
 
 export function Footer() {
   return (
@@ -8,14 +9,26 @@ export function Footer() {
           <div>
             <p className="font-serif-heading text-xl">{siteConfig.name}</p>
             <p className="mt-2 text-sm text-ink-soft">{siteConfig.tagline}</p>
-            <a
-              href={siteConfig.contact.facebookUrl}
-              target="_blank"
-              rel="noreferrer"
-              className="mt-3 inline-block text-sm text-ink-soft hover:text-terracotta"
-            >
-              Facebook
-            </a>
+            <div className="mt-3 flex items-center gap-3">
+              <a
+                href={siteConfig.contact.facebookUrl}
+                target="_blank"
+                rel="noreferrer"
+                aria-label="Facebook"
+                className="text-ink-soft transition-colors hover:text-terracotta"
+              >
+                <FacebookIcon className="h-5 w-5" />
+              </a>
+              <a
+                href={siteConfig.contact.instagramUrl}
+                target="_blank"
+                rel="noreferrer"
+                aria-label="Instagram"
+                className="text-ink-soft transition-colors hover:text-terracotta"
+              >
+                <InstagramIcon className="h-5 w-5" />
+              </a>
+            </div>
           </div>
 
           <div>

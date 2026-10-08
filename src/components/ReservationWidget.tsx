@@ -9,16 +9,30 @@ import { supabase } from "@/lib/supabase-client";
 type Status = "idle" | "submitting" | "success" | "error";
 
 const partySizes = Array.from({ length: 8 }, (_, i) => i + 1);
-const timeSlots = [
-  "12:00", "12:30", "13:00", "13:30", "14:00",
-  "18:00", "18:30", "19:00", "19:30", "20:00", "20:30", "21:00",
-];
-
 const RESERVATION_WINDOW_MINUTES = 120;
+// Последният час за резервация е толкова преди затваряне.
+const LAST_SLOT_BEFORE_CLOSE_MINUTES = 60;
+const SLOT_STEP_MINUTES = 30;
 
 function toMinutes(time: string) {
   const [h, m] = time.split(":").map(Number);
   return h * 60 + m;
+}
+
+function toTime(minutes: number) {
+  return `${String(Math.floor(minutes / 60)).padStart(2, "0")}:${String(minutes % 60).padStart(2, "0")}`;
+}
+
+// Часовете за избраната дата — от работното време в site-config.
+function timeSlotsFor(isoDate: string) {
+  if (!isoDate) return [];
+  const [y, m, d] = isoDate.split("-").map(Number);
+  const hours = siteConfig.orderHours[new Date(y, m - 1, d).getDay()];
+  if (!hours) return [];
+  const slots: string[] = [];
+  const last = toMinutes(hours.close) - LAST_SLOT_BEFORE_CLOSE_MINUTES;
+  for (let t = toMinutes(hours.open); t <= last; t += SLOT_STEP_MINUTES) slots.push(toTime(t));
+  return slots;
 }
 
 function overlaps(timeA: string, timeB: string) {
@@ -132,8 +146,8 @@ export function ReservationWidget() {
               Запазете маса
             </h2>
             <p className="mt-5 text-ink-soft leading-relaxed">
-              Уикенд вечерите се резервират бързо — препоръчваме да пишете
-              поне 3 дни предварително. За групи над 8 души, обадете се
+              Идваш на обяд с колеги или с по-голяма компания? Запази маса
+              предварително и ще те чакаме. За групи над 8 души се обади
               директно на{" "}
               <a href={`tel:${siteConfig.contact.phone}`} className="text-terracotta">
                 {siteConfig.contact.phone}
@@ -219,7 +233,7 @@ export function ReservationWidget() {
                       <option value="" disabled>
                         {date ? "Избери час" : "Първо избери дата"}
                       </option>
-                      {timeSlots.map((t) => (
+                      {timeSlotsFor(date).map((t) => (
                         <option key={t} value={t}>
                           {t}
                         </option>

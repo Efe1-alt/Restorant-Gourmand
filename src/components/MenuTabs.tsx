@@ -3,9 +3,11 @@
 import { useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { siteConfig } from "@/lib/site-config";
+import { AddToCartButton } from "./AddToCartButton";
+import { formatMenuPrice, menuByCategory } from "@/data/menu";
 
 export function MenuTabs() {
-  const categories = siteConfig.menuCategories;
+  const categories = menuByCategory();
   const [active, setActive] = useState<string>(categories[0].name);
   const activeCategory = categories.find((c) => c.name === active) ?? categories[0];
 
@@ -40,14 +42,16 @@ export function MenuTabs() {
             className="mx-auto max-w-2xl divide-y divide-line"
           >
             {activeCategory.items.map((item) => (
-              <div key={item.name} className="flex items-baseline justify-between gap-4 py-4">
+              <div key={item.name} className="flex items-center justify-between gap-4 py-4">
                 <div>
                   <h3 className="font-medium">{item.name}</h3>
-                  <p className="mt-1 text-sm text-ink-soft">{item.description}</p>
                 </div>
-                <span className="whitespace-nowrap text-sm font-semibold text-terracotta">
-                  {item.price}
-                </span>
+                <div className="flex items-center gap-4">
+                  <span className="whitespace-nowrap text-sm font-semibold text-terracotta">
+                    {formatMenuPrice(item.price)}
+                  </span>
+                  <AddToCartButton name={item.name} price={formatMenuPrice(item.price)} />
+                </div>
               </div>
             ))}
           </motion.div>

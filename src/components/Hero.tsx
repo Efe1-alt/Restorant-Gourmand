@@ -48,16 +48,16 @@ export function Hero() {
             initial={{ opacity: 0, y: 14 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
-            className="hero-text-shadow mb-5 text-xs font-semibold uppercase tracking-[0.18em] text-gold sm:text-sm"
+            className="hero-text-shadow mb-5 text-[11px] font-semibold uppercase tracking-[0.18em] text-gold sm:text-[13px]"
           >
-            {siteConfig.cuisine} · {siteConfig.city}
+            {siteConfig.heroEyebrow}
           </motion.p>
 
           <motion.h1
             initial={{ opacity: 0, y: 24 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.9, delay: 0.12, ease: [0.22, 1, 0.36, 1] }}
-            className="hero-text-shadow font-serif-heading text-[42px] font-medium leading-[0.94] text-white sm:text-[50px] lg:text-[56px] xl:text-[64px] 2xl:text-[80px]"
+            className="hero-text-shadow font-serif-heading text-[38px] font-medium leading-[0.94] text-white sm:text-[45px] lg:text-[50px] xl:text-[58px] 2xl:text-[72px]"
           >
             {siteConfig.heroHeadlineLines.map((line) => (
               <span key={line} className="block">
@@ -70,7 +70,7 @@ export function Hero() {
             initial={{ opacity: 0, y: 18 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.9, delay: 0.24, ease: [0.22, 1, 0.36, 1] }}
-            className="hero-text-shadow mt-6 max-w-md text-balance text-base leading-relaxed text-white/80 sm:text-lg"
+            className="hero-text-shadow mt-6 max-w-2xl text-balance text-[15px] leading-relaxed text-white/80 sm:text-[17px]"
           >
             {siteConfig.heroDescription}
           </motion.p>
@@ -82,19 +82,16 @@ export function Hero() {
             className="mt-10 flex flex-wrap items-center gap-x-8 gap-y-4"
           >
             <a
-              href="#reservation"
+              href="/menu"
               className="rounded-full bg-terracotta px-8 py-4 text-sm font-semibold text-cream shadow-lg shadow-black/20 transition-all duration-300 hover:-translate-y-0.5 hover:bg-terracotta-dark hover:shadow-xl"
             >
-              Резервирай маса
+              Поръчай онлайн
             </a>
             <a
-              href="#menu"
+              href="/menu"
               className="hero-text-shadow group inline-flex items-center gap-1.5 text-sm font-semibold text-white transition-colors duration-300 hover:text-gold"
             >
               Виж менюто
-              <span className="transition-transform duration-300 group-hover:translate-x-1">
-                →
-              </span>
             </a>
           </motion.div>
         </div>

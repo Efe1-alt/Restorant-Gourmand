@@ -1,27 +1,23 @@
 import Link from "next/link";
 import { ScrollReveal } from "./ScrollReveal";
-import { siteConfig } from "@/lib/site-config";
+import { AddToCartButton } from "./AddToCartButton";
+import { formatMenuPrice, menu } from "@/data/menu";
 
 // Извадка от пълното меню — по едно-две ястия от всяка категория. Пълният
 // списък е на /menu (виж MenuTabs.tsx) — не се дублира тук.
 const featured = [
-  { category: "Салати", name: "Шопска салата" },
-  { category: "Основни ястия", name: "Свинско бавно печено в пюре" },
-  { category: "Скара", name: "Кебапчета с гарнитура" },
-  { category: "Скара", name: "Пилешка пържола" },
-  { category: "Супи", name: "Шкембе чорба" },
-  { category: "Десерти", name: "Грис халва" },
+  "Пържени кюфтета с картофена салата",
+  "Свинска вратна пържола с моцарела и домати",
+  "Пилешка пържола със задушени зеленчуци",
+  "Боб чорба",
+  "Шопска салата",
+  "Млечен крем",
 ];
-
-function findDish(category: string, name: string) {
-  const cat = siteConfig.menuCategories.find((c) => c.name === category);
-  return cat?.items.find((i) => i.name === name) ?? null;
-}
 
 export function MenuPreview() {
   const dishes = featured
-    .map((f) => ({ ...f, dish: findDish(f.category, f.name) }))
-    .filter((f) => f.dish !== null);
+    .map((name) => menu.find((item) => item.name === name))
+    .filter((dish) => dish !== undefined);
 
   return (
     <section className="mx-auto max-w-7xl px-5 pt-24 pb-12 sm:px-8 sm:pt-32 sm:pb-16">
@@ -35,22 +31,22 @@ export function MenuPreview() {
       </ScrollReveal>
 
       <div className="mt-14 grid grid-cols-1 gap-x-12 gap-y-2 sm:grid-cols-2">
-        {dishes.map(({ category, dish }, i) => (
+        {dishes.map((dish, i) => (
           <ScrollReveal
-            key={dish!.name}
+            key={dish.name}
             delay={i * 0.06}
-            className="flex items-baseline justify-between gap-4 border-b border-line py-4"
+            className="flex items-center justify-between gap-4 border-b border-line py-4"
           >
-            <div>
-              <p className="text-xs font-semibold uppercase tracking-wide text-terracotta">
-                {category}
-              </p>
-              <h3 className="mt-1 font-medium">{dish!.name}</h3>
-              <p className="mt-1 text-sm text-ink-soft">{dish!.description}</p>
+            {/* Подравнено на нивото на бутона „+ Добави“ (долния ред вдясно). */}
+            <div className="self-end py-0.5">
+              <h3 className="font-medium">{dish.name}</h3>
             </div>
-            <span className="whitespace-nowrap text-sm font-semibold text-terracotta">
-              {dish!.price}
-            </span>
+            <div className="flex flex-col items-end gap-2">
+              <span className="whitespace-nowrap text-sm font-semibold text-terracotta">
+                {formatMenuPrice(dish.price)}
+              </span>
+              <AddToCartButton name={dish.name} price={formatMenuPrice(dish.price)} />
+            </div>
           </ScrollReveal>
         ))}
       </div>

@@ -19,7 +19,7 @@ function Stars({ rating, small = false }: { rating: number; small?: boolean }) {
 }
 
 export function SocialProof() {
-  const { rating, count, source, testimonials } = siteConfig.reviews;
+  const { title, googleUrl, testimonials } = siteConfig.reviews;
 
   // 3 отзива видими наведнъж на desktop/tablet, 1 на мобилно.
   const [perPage, setPerPage] = useState(3);
@@ -51,14 +51,9 @@ export function SocialProof() {
     <section className="bg-ink py-24 text-cream sm:py-32">
       <div className="mx-auto max-w-7xl px-5 sm:px-8">
         <ScrollReveal className="flex flex-col items-center text-center">
-          <Stars rating={rating} />
-          <p className="mt-4 text-2xl font-medium">
-            {rating.toFixed(1)} от 5 <span className="text-cream/60">·</span>{" "}
-            {count} ревюта в {source}
-          </p>
-          {/* TODO: свържи с реален Google Places / TripAdvisor рейтинг на Lake House —
-              rating/count по-горе са примерни данни, не реални. Testimonials-ите са
-              реални цитати от клиенти. Не показвай текст за това на страницата. */}
+          <h2 className="text-balance text-3xl font-medium leading-tight sm:text-4xl">
+            {title}
+          </h2>
         </ScrollReveal>
 
         <ScrollReveal delay={0.1} className="mt-16 flex items-center gap-3 sm:gap-6">
@@ -84,7 +79,7 @@ export function SocialProof() {
               >
                 {visible.map((t) => (
                   <div
-                    key={t.author}
+                    key={t.quote}
                     className="rounded-2xl border border-cream/15 p-6 transition-all duration-300 ease-out hover:-translate-y-0.5 hover:scale-[1.02] hover:shadow-lg hover:shadow-black/20"
                   >
                     <p className="leading-relaxed text-cream/90">&ldquo;{t.quote}&rdquo;</p>
@@ -119,6 +114,17 @@ export function SocialProof() {
               }`}
             />
           ))}
+        </div>
+
+        <div className="mt-10 text-center">
+          <a
+            href={googleUrl}
+            target="_blank"
+            rel="noreferrer"
+            className="text-sm font-semibold text-cream transition-colors duration-200 hover:text-gold"
+          >
+            Виж всички отзиви в Google
+          </a>
         </div>
       </div>
     </section>

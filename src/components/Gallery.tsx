@@ -12,7 +12,7 @@ export function Gallery() {
             Всяко ястие има история
           </h2>
           <p className="mt-4 text-ink-soft leading-relaxed">
-            Кратък поглед към кухнята и залата.
+            Кратък поглед към кухнята.
           </p>
         </ScrollReveal>
 
