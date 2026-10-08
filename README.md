@@ -1,4 +1,4 @@
-# Топлина — сайт на ресторант (placeholder бранд)
+# Gourmand
 
 Next.js 14 (App Router) + TypeScript + Tailwind CSS v4 + Framer Motion.
 

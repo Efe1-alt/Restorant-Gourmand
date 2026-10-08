@@ -1,6 +1,5 @@
 import type { Metadata } from "next";
 import { Playfair_Display, Manrope } from "next/font/google";
-import { siteConfig } from "@/lib/site-config";
 import { ScrollToTopOnReload } from "@/components/ScrollToTopOnReload";
 import { CartButton } from "@/components/CartButton";
 import { CartProvider } from "@/lib/cart";
@@ -22,8 +21,9 @@ const manrope = Manrope({
 });
 
 export const metadata: Metadata = {
-  title: `[DEMO] ${siteConfig.name} — ${siteConfig.tagline}`,
-  description: `${siteConfig.cuisine} в ${siteConfig.city}. Private concept demo — не е официалният сайт на ресторанта.`,
+  title: "Gourmand – Домашна храна в Пловдив",
+  description:
+    "Домашни ястия от истински продукти, приготвени всеки ден в Пловдив. Поръчай за вкъщи или с доставка.",
   robots: { index: false, follow: false },
 };
 

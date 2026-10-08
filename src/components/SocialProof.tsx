@@ -23,7 +23,7 @@ export function SocialProof() {
 
   // 3 отзива видими наведнъж на desktop/tablet, 1 на мобилно.
   const [perPage, setPerPage] = useState(3);
-  const [page, setPage] = useState(0);
+  const [rawPage, setPage] = useState(0);
   const [direction, setDirection] = useState(1);
 
   useEffect(() => {
@@ -35,10 +35,9 @@ export function SocialProof() {
   }, []);
 
   const totalPages = Math.ceil(testimonials.length / perPage);
-
-  useEffect(() => {
-    setPage((p) => Math.min(p, totalPages - 1));
-  }, [totalPages]);
+  // При смяна телефон → компютър страниците намаляват (6 → 2) — ограничаваме
+  // при рендер, вместо с effect, който да коригира state-а след това.
+  const page = Math.min(rawPage, totalPages - 1);
 
   function goTo(next: number) {
     setDirection(next > page ? 1 : -1);
@@ -101,7 +100,7 @@ export function SocialProof() {
           </button>
         </ScrollReveal>
 
-        <div className="mt-8 flex justify-center gap-2">
+        <div className="mt-4 flex justify-center">
           {Array.from({ length: totalPages }).map((_, i) => (
             <button
               key={i}
@@ -109,10 +108,14 @@ export function SocialProof() {
               onClick={() => goTo(i)}
               aria-label={`Отзиви, страница ${i + 1}`}
               aria-current={i === page}
-              className={`h-1.5 rounded-full transition-all duration-200 ${
-                i === page ? "w-6 bg-gold" : "w-1.5 bg-cream/25 hover:bg-cream/40"
-              }`}
-            />
+              className="group px-1 py-4"
+            >
+              <span
+                className={`block h-1.5 rounded-full transition-all duration-200 ${
+                  i === page ? "w-6 bg-gold" : "w-1.5 bg-cream/25 group-hover:bg-cream/40"
+                }`}
+              />
+            </button>
           ))}
         </div>
 

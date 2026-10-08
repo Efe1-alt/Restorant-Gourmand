@@ -57,7 +57,7 @@ export function Hero() {
             initial={{ opacity: 0, y: 24 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.9, delay: 0.12, ease: [0.22, 1, 0.36, 1] }}
-            className="hero-text-shadow font-serif-heading text-[38px] font-medium leading-[0.94] text-white sm:text-[45px] lg:text-[50px] xl:text-[58px] 2xl:text-[72px]"
+            className="hero-text-shadow font-serif-heading text-[length:min(8vw,32px)] font-medium leading-[0.94] text-white sm:text-[45px] lg:text-[50px] xl:text-[58px] 2xl:text-[72px]"
           >
             {siteConfig.heroHeadlineLines.map((line) => (
               <span key={line} className="block">

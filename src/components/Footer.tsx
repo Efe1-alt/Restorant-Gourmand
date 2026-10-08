@@ -15,7 +15,7 @@ export function Footer() {
                 target="_blank"
                 rel="noreferrer"
                 aria-label="Facebook"
-                className="text-ink-soft transition-colors hover:text-terracotta"
+                className="-m-2.5 p-2.5 text-ink-soft transition-colors hover:text-terracotta"
               >
                 <FacebookIcon className="h-5 w-5" />
               </a>
@@ -24,7 +24,7 @@ export function Footer() {
                 target="_blank"
                 rel="noreferrer"
                 aria-label="Instagram"
-                className="text-ink-soft transition-colors hover:text-terracotta"
+                className="-m-2.5 p-2.5 text-ink-soft transition-colors hover:text-terracotta"
               >
                 <InstagramIcon className="h-5 w-5" />
               </a>

@@ -7,6 +7,7 @@ import { usePathname } from "next/navigation";
 import { motion } from "framer-motion";
 import { ShoppingBasket } from "lucide-react";
 import { siteConfig } from "@/lib/site-config";
+import { FacebookIcon, InstagramIcon } from "./SocialIcons";
 
 // Anchor секции (#home, #about, ...) съществуват само на homepage-а. Когато
 // сме на друг route (напр. /menu), трябва да сочат обратно към "/#id",
@@ -76,6 +77,27 @@ export function Navbar() {
         </nav>
 
         <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2">
+            {[
+              { label: "Facebook", href: siteConfig.contact.facebookUrl, Icon: FacebookIcon },
+              { label: "Instagram", href: siteConfig.contact.instagramUrl, Icon: InstagramIcon },
+            ].map(({ label, href, Icon }) => (
+              <a
+                key={label}
+                href={href}
+                target="_blank"
+                rel="noreferrer"
+                aria-label={label}
+                className={`flex h-10 w-10 items-center justify-center rounded-full border transition-all duration-300 hover:-translate-y-0.5 ${
+                  light && !open
+                    ? "border-white/40 bg-white/10 text-white backdrop-blur-sm hover:border-white hover:bg-white hover:text-terracotta"
+                    : "border-line text-ink-soft hover:border-terracotta hover:text-terracotta"
+                }`}
+              >
+                <Icon className="h-[18px] w-[18px]" />
+              </a>
+            ))}
+          </div>
           {/* TODO: количката — засега без функционалност. */}
           <button
             type="button"
