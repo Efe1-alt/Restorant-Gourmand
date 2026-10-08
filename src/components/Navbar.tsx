@@ -77,6 +77,14 @@ export function Navbar() {
         </nav>
 
         <div className="flex items-center gap-3">
+          {/* TODO: количката — засега без функционалност. */}
+          <button
+            type="button"
+            aria-label="Количка"
+            className="flex h-11 w-11 items-center justify-center rounded-full bg-terracotta text-white transition-all duration-300 hover:-translate-y-0.5 hover:bg-terracotta-dark hover:shadow-lg hover:shadow-black/10"
+          >
+            <ShoppingBasket aria-hidden className="h-5 w-5" />
+          </button>
           <div className="flex items-center gap-2">
             {[
               { label: "Facebook", href: siteConfig.contact.facebookUrl, Icon: FacebookIcon },
@@ -98,14 +106,6 @@ export function Navbar() {
               </a>
             ))}
           </div>
-          {/* TODO: количката — засега без функционалност. */}
-          <button
-            type="button"
-            aria-label="Количка"
-            className="flex h-11 w-11 items-center justify-center rounded-full bg-terracotta text-white transition-all duration-300 hover:-translate-y-0.5 hover:bg-terracotta-dark hover:shadow-lg hover:shadow-black/10"
-          >
-            <ShoppingBasket aria-hidden className="h-5 w-5" />
-          </button>
           <button
             aria-label="Меню"
             aria-expanded={open}
