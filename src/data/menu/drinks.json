@@ -1,0 +1,44 @@
+[
+  {
+    "name": "Кока-Кола",
+    "weight": "500 мл",
+    "price": "1,70 €",
+    "description": ""
+  },
+  {
+    "name": "Кока-Кола без захар",
+    "weight": "500 мл",
+    "price": "1,70 €",
+    "description": ""
+  },
+  {
+    "name": "Фанта портокал",
+    "weight": "500 мл",
+    "price": "1,70 €",
+    "description": ""
+  },
+  {
+    "name": "Фанта лимон",
+    "weight": "500 мл",
+    "price": "1,70 €",
+    "description": ""
+  },
+  {
+    "name": "Фанта грозде",
+    "weight": "500 мл",
+    "price": "1,70 €",
+    "description": ""
+  },
+  {
+    "name": "Студен чай Fuzetea праскова",
+    "weight": "500 мл",
+    "price": "1,70 €",
+    "description": ""
+  },
+  {
+    "name": "Студен чай Fuzetea лимон",
+    "weight": "500 мл",
+    "price": "1,70 €",
+    "description": ""
+  }
+]

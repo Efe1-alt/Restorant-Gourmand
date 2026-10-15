@@ -1,0 +1,26 @@
+[
+  {
+    "name": "Питка бял хляб",
+    "weight": "1 бр.",
+    "price": "0,35 €",
+    "description": ""
+  },
+  {
+    "name": "Питка пълнозърнеста",
+    "weight": "1 бр.",
+    "price": "0,35 €",
+    "description": ""
+  },
+  {
+    "name": "Филийка бял хляб",
+    "weight": "1 бр.",
+    "price": "0,15 €",
+    "description": ""
+  },
+  {
+    "name": "Филийка черен хляб",
+    "weight": "1 бр.",
+    "price": "0,15 €",
+    "description": ""
+  }
+]
