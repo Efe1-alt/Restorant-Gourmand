@@ -46,7 +46,7 @@ async function findCenter(file, W, H) {
     const file = path.join(inDir, f);
     const { width: W, height: H } = await sharp(file).metadata();
     const { cx, cy, n } = await findCenter(file, W, H);
-    const side = Math.round(Math.min(W, H) * 0.8); // леко приближаване, за да има място за центриране
+    const side = Math.min(W, H);
     const left = Math.round(Math.max(0, Math.min(W - side, cx * W - side / 2)));
     const top = Math.round(Math.max(0, Math.min(H - side, cy * H - side / 2)));
     await sharp(file)

@@ -102,17 +102,17 @@ export function MenuTabs() {
                 isLunch ? lunchEntryId(day, item) : sectionEntryId(section.key, item)
               );
               return (
-                <div key={`${i}-${item.name}`} className="flex flex-wrap items-center gap-x-4 gap-y-3 py-5 sm:flex-nowrap sm:gap-6 sm:py-6">
+                <div key={`${i}-${item.name}`} className="flex flex-wrap items-center gap-x-4 gap-y-3 py-4 sm:flex-nowrap">
                   {entry ? (
-                    <DishOpener entry={entry} thumbSize="lg" />
+                    <DishOpener entry={entry} stacked />
                   ) : (
                     <div className="min-w-0 flex-1">
                       <h3 className="font-medium">{item.name}</h3>
-                      {details && <p className="mt-1 font-sans text-sm text-ink/65">{details}</p>}
+                      {details && <p className="mt-1 font-sans text-sm text-ink-soft">{details}</p>}
                     </div>
                   )}
                   <div className="ml-auto flex shrink-0 items-center gap-4">
-                    <span className="whitespace-nowrap text-base font-semibold text-terracotta sm:text-lg">
+                    <span className="whitespace-nowrap text-sm font-semibold text-terracotta">
                       {item.price}
                     </span>
                     {entry && <AddToCartButton entry={entry} />}

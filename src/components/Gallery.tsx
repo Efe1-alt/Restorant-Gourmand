@@ -8,10 +8,7 @@ export function Gallery() {
     <section id="gallery" className="bg-cream-soft pt-12 pb-24 sm:pt-16 sm:pb-32">
       <div className="mx-auto max-w-7xl px-5 sm:px-8">
         <ScrollReveal className="max-w-2xl">
-          <h2 className="text-balance text-3xl font-medium leading-tight sm:text-4xl">
-            Всяко ястие има история
-          </h2>
-          <p className="mt-4 text-ink-soft leading-relaxed">
+          <p className="text-ink-soft leading-relaxed">
             Кратък поглед към кухнята.
           </p>
         </ScrollReveal>

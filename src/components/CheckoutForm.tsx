@@ -108,7 +108,7 @@ function Summary({ fulfillment }: { fulfillment: Fulfillment }) {
               <p className="font-medium">
                 {item.quantity} × {item.name}
               </p>
-              {item.weight && <p className="mt-0.5 text-ink/65">{item.weight}</p>}
+              {item.weight && <p className="mt-0.5 text-ink-soft">{item.weight}</p>}
             </div>
             <span className="shrink-0 font-semibold text-terracotta">
               {formatCents(item.price * item.quantity)}

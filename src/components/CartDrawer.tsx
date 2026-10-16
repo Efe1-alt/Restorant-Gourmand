@@ -87,7 +87,7 @@ export function CartDrawer() {
                       <div className="flex items-start justify-between gap-3">
                         <div className="min-w-0">
                           <p className="font-medium leading-snug">{item.name}</p>
-                          {item.weight && <p className="mt-0.5 text-sm text-ink/65">{item.weight}</p>}
+                          {item.weight && <p className="mt-0.5 text-sm text-ink-soft">{item.weight}</p>}
                         </div>
                         <button
                           type="button"

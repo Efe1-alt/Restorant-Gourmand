@@ -73,7 +73,7 @@ export function DishDialog({
             <div className="overflow-y-auto">
               {/* Снимката запълва цялото поле (с изрязване по краищата). */}
               {src ? (
-                <div className="relative aspect-[4/3] max-h-[60vh] w-full overflow-hidden bg-cream-soft">
+                <div className="relative aspect-square max-h-[60vh] w-full overflow-hidden bg-cream-soft">
                   <Image
                     src={src}
                     alt={item.name}
@@ -99,7 +99,7 @@ export function DishDialog({
                 <h2 id={titleId} className="mt-2 text-balance text-2xl font-medium leading-snug">
                   {item.name}
                 </h2>
-                {item.weight && <p className="mt-1 text-sm text-ink/65">{item.weight}</p>}
+                {item.weight && <p className="mt-1 text-sm text-ink-soft">{item.weight}</p>}
                 {item.description && (
                   <p className="mt-4 leading-relaxed text-ink-soft">{item.description}</p>
                 )}
