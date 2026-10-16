@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Playfair_Display, Manrope } from "next/font/google";
 import { ScrollToTopOnReload } from "@/components/ScrollToTopOnReload";
 import { CartButton } from "@/components/CartButton";
+import { CartDrawer } from "@/components/CartDrawer";
 import { CartProvider } from "@/lib/cart";
 import "./globals.css";
 
@@ -37,16 +38,19 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
         {/* Изключва браузърното scroll restoration възможно най-рано (преди React
             да хидратира), за да няма видим "скок" при reload — вижда се старата
             позиция за миг, после JS я коригира. Трябва да е синхронен inline
-            script, не useEffect — тогава вече е късно, браузърът вече е скролнал. */}
+            script, не useEffect — тогава вече е късно, браузърът вече е скролнал.
+            При презареждане (F5) от която и да е страница или секция (#contact)
+            връща към началната страница — пак тук, преди страницата да се покаже. */}
         <script
           dangerouslySetInnerHTML={{
-            __html: `try{if('scrollRestoration' in history){history.scrollRestoration='manual'}}catch(e){}`,
+            __html: `try{if('scrollRestoration' in history){history.scrollRestoration='manual'}var n=performance.getEntriesByType('navigation')[0];if(n&&n.type==='reload'&&(location.pathname!=='/'||location.search||location.hash)){location.replace('/')}}catch(e){}`,
           }}
         />
         <ScrollToTopOnReload />
         <CartProvider>
           {children}
           <CartButton />
+          <CartDrawer />
         </CartProvider>
       </body>
     </html>

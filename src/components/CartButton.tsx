@@ -1,31 +1,17 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { AnimatePresence, motion } from "framer-motion";
-import { formatPrice, useCart } from "@/lib/cart";
+import { useCart } from "@/lib/cart";
+import { formatCents } from "@/lib/ordering";
 
-// Плаващ бутон към секцията за поръчка — видим на всеки route, докато в
-// количката има нещо. Скрива се, когато самата секция е на екрана, за да не
-// закрива бутона за изпращане на телефон.
+// Плаващ бутон долу вдясно — само на мобилни (на по-големи екрани е иконата
+// в хедъра) и само когато количката не е празна. Скрит е на страниците за
+// поръчка, за да не закрива формата.
 export function CartButton() {
-  const { count, totalCents } = useCart();
+  const { count, subtotalCents, isOpen, openCart } = useCart();
   const pathname = usePathname();
-  const isHome = pathname === "/";
-  const [orderInView, setOrderInView] = useState(false);
-
-  useEffect(() => {
-    const section = isHome ? document.getElementById("order") : null;
-    if (!section) return;
-    const observer = new IntersectionObserver(([entry]) => setOrderInView(entry.isIntersecting), {
-      threshold: 0.1,
-    });
-    observer.observe(section);
-    return () => observer.disconnect();
-  }, [isHome]);
-
-  const visible = count > 0 && !(isHome && orderInView);
+  const visible = count > 0 && !isOpen && !pathname.startsWith("/porachka");
 
   return (
     <AnimatePresence>
@@ -35,20 +21,15 @@ export function CartButton() {
           animate={{ opacity: 1, y: 0 }}
           exit={{ opacity: 0, y: 24 }}
           transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
-          className="fixed inset-x-4 bottom-4 z-40 sm:inset-x-auto sm:right-6 sm:bottom-6"
+          className="fixed bottom-[max(1rem,env(safe-area-inset-bottom))] right-4 z-40 sm:hidden"
         >
-          <Link
-            href={isHome ? "#order" : "/#order"}
-            className="flex items-center justify-between gap-6 rounded-full bg-terracotta px-6 py-4 text-sm font-semibold text-cream shadow-xl shadow-black/20 transition-colors duration-200 hover:bg-terracotta-dark"
+          <button
+            type="button"
+            onClick={openCart}
+            className="flex min-h-12 items-center gap-2 rounded-full bg-terracotta px-5 text-sm font-semibold text-cream shadow-xl shadow-black/20 transition-colors duration-200 hover:bg-terracotta-dark"
           >
-            <span>
-              Количка · {count} {count === 1 ? "ястие" : "ястия"}
-            </span>
-            <span className="flex items-center gap-2">
-              {formatPrice(totalCents)}
-              <span aria-hidden>→</span>
-            </span>
-          </Link>
+            Количка · {count} · {formatCents(subtotalCents)}
+          </button>
         </motion.div>
       )}
     </AnimatePresence>

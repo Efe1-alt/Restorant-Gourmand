@@ -1,22 +1,20 @@
 "use client";
 
-import { useState, useSyncExternalStore } from "react";
+import { useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { siteConfig } from "@/lib/site-config";
+import { useSofiaNow } from "@/lib/use-sofia-now";
 import { AddToCartButton } from "./AddToCartButton";
-import { LUNCH_SECTION, lunchDays, menuItemDetails, menuSections } from "@/data/menu";
-
-// Днешният ден по софийско време: 0 = неделя … 6 = събота. На сървъра (и при
-// първия клиентски render) е null, за да няма hydration разминаване.
-const WEEKDAYS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
-const subscribeNoop = () => () => {};
-function getSofiaWeekday() {
-  const short = new Intl.DateTimeFormat("en-US", {
-    weekday: "short",
-    timeZone: "Europe/Sofia",
-  }).format(new Date());
-  return WEEKDAYS.indexOf(short);
-}
+import { DishOpener } from "./DishOpener";
+import {
+  LUNCH_SECTION,
+  findMenuEntry,
+  lunchDays,
+  lunchEntryId,
+  menuItemDetails,
+  menuSections,
+  sectionEntryId,
+} from "@/data/menu";
 
 // Хапчетата се скролват хоризонтално на един ред на мобилни, а от sm нагоре
 // се пренасят и центрират. -mx/px пускат скрола до ръба на екрана.
@@ -24,7 +22,11 @@ const pillRow =
   "-mx-5 flex gap-2 overflow-x-auto px-5 [scrollbar-width:none] sm:mx-0 sm:flex-wrap sm:justify-center sm:overflow-visible sm:px-0 [&::-webkit-scrollbar]:hidden";
 
 function pillClass(active: boolean, size: "lg" | "sm") {
-  const sizing = size === "lg" ? "px-5 py-2.5 text-sm" : "px-4 py-1.5 text-xs";
+  // На мобилни поне 44px височина (min-h-11), за да се натискат лесно.
+  const sizing =
+    size === "lg"
+      ? "min-h-11 px-5 text-sm sm:min-h-0 sm:py-2.5"
+      : "min-h-11 px-4 text-xs sm:min-h-0 sm:py-1.5";
   return `shrink-0 whitespace-nowrap rounded-full font-semibold transition-colors duration-200 ${sizing} ${
     active
       ? "bg-terracotta text-cream"
@@ -34,32 +36,29 @@ function pillClass(active: boolean, size: "lg" | "sm") {
 
 export function MenuTabs() {
   const [active, setActive] = useState<string>(menuSections[0].name);
-  const [pickedDay, setPickedDay] = useState<number | null>(null);
+  // Винаги започва от понеделник (и след презареждане).
+  const [dayIndex, setPickedDay] = useState(0);
 
-  const weekday = useSyncExternalStore(subscribeNoop, getSofiaWeekday, () => null);
-  const isSunday = weekday === 0;
-  // В неделя (и преди hydration) показваме понеделник.
-  const todayIndex = weekday === null || isSunday ? 0 : weekday - 1;
-  const dayIndex = pickedDay ?? todayIndex;
+  const isSunday = useSofiaNow()?.weekday === 0;
 
   const isLunch = active === LUNCH_SECTION;
-  const items = isLunch
-    ? lunchDays[dayIndex].items
-    : (menuSections.find((s) => s.name === active) ?? menuSections[0]).items;
-  const listKey = isLunch ? `${active}-${lunchDays[dayIndex].id}` : active;
+  const section = menuSections.find((s) => s.name === active) ?? menuSections[0];
+  const day = lunchDays[dayIndex];
+  const items = isLunch ? day.items : section.items;
+  const listKey = isLunch ? `${active}-${day.id}` : active;
 
   return (
     <div>
       <div className={pillRow}>
-        {menuSections.map((section) => (
+        {menuSections.map((s) => (
           <button
-            key={section.name}
+            key={s.name}
             type="button"
-            onClick={() => setActive(section.name)}
-            aria-pressed={active === section.name}
-            className={pillClass(active === section.name, "lg")}
+            onClick={() => setActive(s.name)}
+            aria-pressed={active === s.name}
+            className={pillClass(active === s.name, "lg")}
           >
-            {section.name}
+            {s.name}
           </button>
         ))}
       </div>
@@ -67,15 +66,15 @@ export function MenuTabs() {
       {isLunch && (
         <div className="mt-5">
           <div className={pillRow}>
-            {lunchDays.map((day, i) => (
+            {lunchDays.map((d, i) => (
               <button
-                key={day.id}
+                key={d.id}
                 type="button"
                 onClick={() => setPickedDay(i)}
                 aria-pressed={dayIndex === i}
                 className={pillClass(dayIndex === i, "sm")}
               >
-                {day.label}
+                {d.label}
               </button>
             ))}
           </div>
@@ -95,21 +94,28 @@ export function MenuTabs() {
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -8 }}
             transition={{ duration: 0.25, ease: [0.22, 1, 0.36, 1] }}
-            className="mx-auto max-w-2xl divide-y divide-line"
+            className="mx-auto max-w-4xl divide-y divide-line"
           >
             {items.map((item, i) => {
               const details = menuItemDetails(item);
+              const entry = findMenuEntry(
+                isLunch ? lunchEntryId(day, item) : sectionEntryId(section.key, item)
+              );
               return (
-                <div key={`${i}-${item.name}`} className="flex items-center justify-between gap-4 py-4">
-                  <div>
-                    <h3 className="font-medium">{item.name}</h3>
-                    {details && <p className="mt-1 font-sans text-sm text-ink/65">{details}</p>}
-                  </div>
-                  <div className="flex shrink-0 items-center gap-4">
-                    <span className="whitespace-nowrap text-sm font-semibold text-terracotta">
+                <div key={`${i}-${item.name}`} className="flex flex-wrap items-center gap-x-4 gap-y-3 py-5 sm:flex-nowrap sm:gap-6 sm:py-6">
+                  {entry ? (
+                    <DishOpener entry={entry} thumbSize="lg" />
+                  ) : (
+                    <div className="min-w-0 flex-1">
+                      <h3 className="font-medium">{item.name}</h3>
+                      {details && <p className="mt-1 font-sans text-sm text-ink/65">{details}</p>}
+                    </div>
+                  )}
+                  <div className="ml-auto flex shrink-0 items-center gap-4">
+                    <span className="whitespace-nowrap text-base font-semibold text-terracotta sm:text-lg">
                       {item.price}
                     </span>
-                    <AddToCartButton name={item.name} price={item.price} />
+                    {entry && <AddToCartButton entry={entry} />}
                   </div>
                 </div>
               );

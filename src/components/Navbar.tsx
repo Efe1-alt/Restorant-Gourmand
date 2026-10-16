@@ -7,6 +7,7 @@ import { usePathname } from "next/navigation";
 import { motion } from "framer-motion";
 import { ShoppingBasket } from "lucide-react";
 import { siteConfig } from "@/lib/site-config";
+import { useCart } from "@/lib/cart";
 
 // Anchor секции (#home, #about, ...) съществуват само на homepage-а. Когато
 // сме на друг route (напр. /menu), трябва да сочат обратно към "/#id",
@@ -21,6 +22,7 @@ export function Navbar() {
   const isHome = pathname === "/";
   const [scrolled, setScrolled] = useState(false);
   const [open, setOpen] = useState(false);
+  const { count, openCart } = useCart();
   const navLinks = siteConfig.navigation;
   // Прозрачен navbar с бял текст важи само за hero-а на homepage-а, преди
   // скрол. Всеки друг route няма full-bleed тъмна снимка зад navbar-а.
@@ -76,19 +78,27 @@ export function Navbar() {
         </nav>
 
         <div className="flex items-center gap-3">
-          {/* TODO: количката — засега без функционалност. */}
           <button
             type="button"
-            aria-label="Количка"
-            className="flex h-11 w-11 items-center justify-center rounded-full bg-terracotta text-white transition-all duration-300 hover:-translate-y-0.5 hover:bg-terracotta-dark hover:shadow-lg hover:shadow-black/10"
+            onClick={openCart}
+            aria-label={count > 0 ? `Количка, ${count} в количката` : "Количка"}
+            className="relative flex h-11 w-11 items-center justify-center rounded-full bg-terracotta text-white transition-all duration-300 hover:-translate-y-0.5 hover:bg-terracotta-dark hover:shadow-lg hover:shadow-black/10"
           >
             <ShoppingBasket aria-hidden className="h-5 w-5" />
+            {count > 0 && (
+              <span
+                aria-hidden
+                className="absolute -right-1.5 -top-1.5 flex h-5 min-w-5 items-center justify-center rounded-full bg-terracotta-dark px-1 text-[11px] font-bold leading-none text-cream ring-2 ring-cream"
+              >
+                {count}
+              </span>
+            )}
           </button>
           <button
             aria-label="Меню"
             aria-expanded={open}
             onClick={() => setOpen((v) => !v)}
-            className={`flex h-10 w-10 items-center justify-center rounded-full border transition-colors duration-300 lg:hidden ${
+            className={`flex h-11 w-11 items-center justify-center rounded-full border transition-colors duration-300 lg:hidden ${
               light && !open
                 ? "hero-text-shadow border-white/50 text-white"
                 : "border-line text-ink"

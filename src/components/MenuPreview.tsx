@@ -1,7 +1,8 @@
 import Link from "next/link";
 import { ScrollReveal } from "./ScrollReveal";
 import { AddToCartButton } from "./AddToCartButton";
-import { lunchDays, menuItemDetails, menuSections, type MenuItem } from "@/data/menu";
+import { DishOpener } from "./DishOpener";
+import { menuEntries } from "@/data/menu";
 
 // Извадка от пълното меню — по едно-две ястия от всяка категория. Данните
 // идват от JSON файловете в data/menu; тук са само имената.
@@ -14,16 +15,11 @@ const featured = [
   "Млечен крем",
 ];
 
-// Първото срещане по име — секциите, после обедното меню по дни.
-const allItems: MenuItem[] = [
-  ...menuSections.flatMap((s) => s.items),
-  ...lunchDays.flatMap((d) => d.items),
-];
-
 export function MenuPreview() {
-  const dishes = featured
-    .map((name) => allItems.find((item) => item.name === name))
-    .filter((dish) => dish !== undefined);
+  // Първото срещане по име — секциите, после обедното меню по дни.
+  const entries = featured
+    .map((name) => menuEntries.find((e) => e.item.name === name))
+    .filter((entry) => entry !== undefined);
 
   return (
     <section className="mx-auto max-w-7xl px-5 pt-24 pb-12 sm:px-8 sm:pt-32 sm:pb-16">
@@ -37,23 +33,20 @@ export function MenuPreview() {
       </ScrollReveal>
 
       <div className="mt-14 grid grid-cols-1 gap-x-12 gap-y-2 sm:grid-cols-2">
-        {dishes.map((dish, i) => {
-          const details = menuItemDetails(dish);
+        {entries.map((entry, i) => {
+          const dish = entry.item;
           return (
             <ScrollReveal
               key={dish.name}
               delay={i * 0.06}
-              className="flex items-center justify-between gap-4 border-b border-line py-4"
+              className="flex items-center gap-3 border-b border-line py-4 sm:gap-4"
             >
-              <div>
-                <h3 className="font-medium">{dish.name}</h3>
-                {details && <p className="mt-1 font-sans text-sm text-ink/65">{details}</p>}
-              </div>
+              <DishOpener entry={entry} />
               <div className="flex shrink-0 items-center gap-4">
                 <span className="whitespace-nowrap text-sm font-semibold text-terracotta">
                   {dish.price}
                 </span>
-                <AddToCartButton name={dish.name} price={dish.price} />
+                <AddToCartButton entry={entry} />
               </div>
             </ScrollReveal>
           );
