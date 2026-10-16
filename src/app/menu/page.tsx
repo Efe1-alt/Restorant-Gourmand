@@ -15,14 +15,14 @@ export default function MenuPage() {
     <>
       <Navbar />
       <main>
-        <section className="mx-auto max-w-6xl px-5 pb-24 pt-36 sm:px-8 sm:pt-40">
+        <section className="mx-auto max-w-6xl px-5 pb-24 pt-[124px] sm:px-8 sm:pt-[140px]">
           <div className="text-center">
             <h1 className="text-balance text-3xl font-medium leading-tight sm:text-4xl">
               Меню
             </h1>
           </div>
 
-          <div className="mt-14">
+          <div className="mt-9">
             <MenuTabs />
           </div>
         </section>

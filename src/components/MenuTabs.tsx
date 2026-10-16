@@ -4,14 +4,12 @@ import { useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { siteConfig } from "@/lib/site-config";
 import { useSofiaNow } from "@/lib/use-sofia-now";
-import { AddToCartButton } from "./AddToCartButton";
-import { DishOpener } from "./DishOpener";
+import { DishCard } from "./DishCard";
 import {
   LUNCH_SECTION,
   findMenuEntry,
   lunchDays,
   lunchEntryId,
-  menuItemDetails,
   menuSections,
   sectionEntryId,
 } from "@/data/menu";
@@ -36,10 +34,13 @@ function pillClass(active: boolean, size: "lg" | "sm") {
 
 export function MenuTabs() {
   const [active, setActive] = useState<string>(menuSections[0].name);
-  // Винаги започва от понеделник (и след презареждане).
-  const [dayIndex, setPickedDay] = useState(0);
+  const [pickedDay, setPickedDay] = useState<number | null>(null);
 
-  const isSunday = useSofiaNow()?.weekday === 0;
+  // По подразбиране — днешният ден; в неделя (и преди hydration) — понеделник.
+  const weekday = useSofiaNow()?.weekday ?? null;
+  const isSunday = weekday === 0;
+  const todayIndex = weekday === null || isSunday ? 0 : weekday - 1;
+  const dayIndex = pickedDay ?? todayIndex;
 
   const isLunch = active === LUNCH_SECTION;
   const section = menuSections.find((s) => s.name === active) ?? menuSections[0];
@@ -86,7 +87,7 @@ export function MenuTabs() {
         </div>
       )}
 
-      <div className="mt-14 min-h-[320px]">
+      <div className="mt-10 min-h-[320px]">
         <AnimatePresence mode="wait">
           <motion.div
             key={listKey}
@@ -94,32 +95,17 @@ export function MenuTabs() {
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -8 }}
             transition={{ duration: 0.25, ease: [0.22, 1, 0.36, 1] }}
-            className="mx-auto max-w-4xl divide-y divide-line"
+            className="mx-auto grid max-w-[1200px] grid-cols-1 gap-4 sm:grid-cols-2 sm:gap-6 lg:grid-cols-3"
           >
-            {items.map((item, i) => {
-              const details = menuItemDetails(item);
-              const entry = findMenuEntry(
-                isLunch ? lunchEntryId(day, item) : sectionEntryId(section.key, item)
-              );
-              return (
-                <div key={`${i}-${item.name}`} className="flex flex-wrap items-center gap-x-4 gap-y-3 py-4 sm:flex-nowrap">
-                  {entry ? (
-                    <DishOpener entry={entry} stacked />
-                  ) : (
-                    <div className="min-w-0 flex-1">
-                      <h3 className="font-medium">{item.name}</h3>
-                      {details && <p className="mt-1 font-sans text-sm text-ink-soft">{details}</p>}
-                    </div>
-                  )}
-                  <div className="ml-auto flex shrink-0 items-center gap-4">
-                    <span className="whitespace-nowrap text-sm font-semibold text-terracotta">
-                      {item.price}
-                    </span>
-                    {entry && <AddToCartButton entry={entry} />}
-                  </div>
-                </div>
-              );
-            })}
+            {items.map((item, i) => (
+              <DishCard
+                key={`${i}-${item.name}`}
+                item={item}
+                entry={findMenuEntry(
+                  isLunch ? lunchEntryId(day, item) : sectionEntryId(section.key, item)
+                )}
+              />
+            ))}
           </motion.div>
         </AnimatePresence>
       </div>

@@ -1,7 +1,6 @@
 import Link from "next/link";
 import { ScrollReveal } from "./ScrollReveal";
-import { AddToCartButton } from "./AddToCartButton";
-import { DishOpener } from "./DishOpener";
+import { DishCard } from "./DishCard";
 import { menuEntries } from "@/data/menu";
 
 // Извадка от пълното меню — по едно-две ястия от всяка категория. Данните
@@ -32,25 +31,13 @@ export function MenuPreview() {
         </p>
       </ScrollReveal>
 
-      <div className="mt-14 grid grid-cols-1 gap-x-12 gap-y-2 sm:grid-cols-2">
-        {entries.map((entry, i) => {
-          const dish = entry.item;
-          return (
-            <ScrollReveal
-              key={dish.name}
-              delay={i * 0.06}
-              className="flex items-center gap-3 border-b border-line py-4 sm:gap-4"
-            >
-              <DishOpener entry={entry} />
-              <div className="flex shrink-0 items-center gap-4">
-                <span className="whitespace-nowrap text-sm font-semibold text-terracotta">
-                  {dish.price}
-                </span>
-                <AddToCartButton entry={entry} />
-              </div>
-            </ScrollReveal>
-          );
-        })}
+      {/* Същите карти като в страницата „Меню“. */}
+      <div className="mt-14 grid grid-cols-1 gap-4 sm:grid-cols-2 sm:gap-6 lg:grid-cols-3">
+        {entries.map((entry, i) => (
+          <ScrollReveal key={entry.item.name} delay={i * 0.06} className="flex">
+            <DishCard item={entry.item} entry={entry} className="flex-1" />
+          </ScrollReveal>
+        ))}
       </div>
 
       <ScrollReveal delay={0.2} className="mt-12 text-center">

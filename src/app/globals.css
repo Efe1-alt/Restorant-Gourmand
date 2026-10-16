@@ -11,6 +11,8 @@
   --color-olive-dark: #3d4530;
   --color-gold: #c79a4b;
   --color-line: #e4d8c2;
+  /* Най-светлият тон — фон на картите в „Меню“ върху кремавата страница. */
+  --color-paper: #fffdf9;
 }
 
 @theme inline {
@@ -24,6 +26,7 @@
   --color-olive-dark: var(--color-olive-dark);
   --color-gold: var(--color-gold);
   --color-line: var(--color-line);
+  --color-paper: var(--color-paper);
   --font-serif: var(--font-fraunces);
   --font-sans: var(--font-manrope);
 }
