@@ -27,7 +27,10 @@ export function Hero() {
             priority
             sizes="100vw"
             className="object-cover"
-            style={{ objectPosition: siteConfig.heroImage.objectPosition }}
+            style={{
+              objectPosition: siteConfig.heroImage.objectPosition,
+              filter: "brightness(1.05) contrast(1.05) saturate(1.05)",
+            }}
           />
         </motion.div>
       </div>
@@ -35,12 +38,11 @@ export function Hero() {
       {/* Cinematic color grading — топъl overlay в highlight-ите, без да
           удавя наситеността на храната (blend mode, не плътен цвят). */}
       <div className="absolute inset-0 bg-gradient-to-br from-[#7a3f14]/25 via-transparent to-transparent mix-blend-overlay" />
-      {/* Основен тъмен overlay — равномерен, лек, за общ cinematic тон. */}
-      <div className="absolute inset-0 bg-black/20" />
-      {/* По-тъмен градиент отляво, където сяда текстът. */}
-      <div className="absolute inset-0 bg-gradient-to-r from-black/70 via-black/25 to-transparent" />
+      {/* Тъмен градиент само зад текста (отляво), изсветлява надясно.
+          Под 640px е с 0.1 по-тъмен — там текстът покрива повече от снимката. */}
+      <div className="absolute inset-0 bg-[linear-gradient(to_right,rgba(0,0,0,0.65)_0%,rgba(0,0,0,0.35)_50%,rgba(0,0,0,0.15)_100%)] sm:bg-[linear-gradient(to_right,rgba(0,0,0,0.55)_0%,rgba(0,0,0,0.25)_50%,rgba(0,0,0,0.05)_100%)]" />
       {/* Лек bottom градиент — грундира секцията към следващата отдолу. */}
-      <div className="absolute inset-x-0 bottom-0 h-1/3 bg-gradient-to-t from-black/45 to-transparent" />
+      <div className="absolute inset-x-0 bottom-0 h-1/3 bg-gradient-to-t from-black/25 to-transparent" />
 
       <div className="relative z-10 w-full py-28">
         <div className="w-full max-w-xl pl-[8%] pr-6 sm:max-w-2xl sm:pl-[10%] lg:max-w-none lg:pl-[10%] lg:pr-8 xl:pl-[12%] xl:pr-16">
@@ -48,7 +50,7 @@ export function Hero() {
             initial={{ opacity: 0, y: 14 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
-            className="hero-text-shadow mb-5 text-[11px] font-semibold uppercase tracking-[0.18em] text-gold sm:text-[13px]"
+            className="hero-copy-shadow mb-5 text-[11px] font-semibold uppercase tracking-[0.18em] text-gold sm:text-[13px]"
           >
             {siteConfig.heroEyebrow}
           </motion.p>
@@ -57,7 +59,7 @@ export function Hero() {
             initial={{ opacity: 0, y: 24 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.9, delay: 0.12, ease: [0.22, 1, 0.36, 1] }}
-            className="hero-text-shadow font-serif-heading text-[length:min(8vw,32px)] font-medium leading-[0.94] text-white sm:text-[45px] lg:text-[50px] xl:text-[58px] 2xl:text-[72px]"
+            className="hero-copy-shadow font-serif-heading text-[length:min(8vw,32px)] font-medium leading-[0.94] text-white sm:text-[45px] lg:text-[50px] xl:text-[58px] 2xl:text-[72px]"
           >
             {siteConfig.heroHeadlineLines.map((line) => (
               <span key={line} className="block">
@@ -70,7 +72,7 @@ export function Hero() {
             initial={{ opacity: 0, y: 18 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.9, delay: 0.24, ease: [0.22, 1, 0.36, 1] }}
-            className="hero-text-shadow mt-6 max-w-2xl text-balance text-[15px] leading-relaxed text-white/80 sm:text-[17px]"
+            className="hero-desc-shadow mt-6 max-w-2xl text-balance text-[15px] leading-relaxed text-white/90 sm:text-[17px]"
           >
             {siteConfig.heroDescription}
           </motion.p>
@@ -89,7 +91,7 @@ export function Hero() {
             </a>
             <a
               href="/menu"
-              className="hero-text-shadow group inline-flex items-center gap-1.5 text-sm font-semibold text-white transition-colors duration-300 hover:text-gold"
+              className="hero-copy-shadow group inline-flex items-center gap-1.5 text-sm font-semibold text-white transition-colors duration-300 hover:text-gold"
             >
               Виж менюто
             </a>
@@ -99,7 +101,7 @@ export function Hero() {
             initial={{ opacity: 0, y: 18 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.9, delay: 0.48, ease: [0.22, 1, 0.36, 1] }}
-            className="hero-text-shadow mt-6 inline-flex items-center gap-1.5 text-sm text-white/75"
+            className="hero-copy-shadow mt-6 inline-flex items-center gap-1.5 text-sm text-white/90"
           >
             {/* Пин за локация */}
             <svg
