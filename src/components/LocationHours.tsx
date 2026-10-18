@@ -49,7 +49,7 @@ export function LocationHours() {
             <ScrollReveal delay={0.1} className="h-full min-h-[320px]">
               <iframe
                 title={`Карта — ${siteConfig.name}, ${siteConfig.contact.address}`}
-                src={`https://www.google.com/maps?q=${encodeURIComponent(siteConfig.contact.address)}&output=embed`}
+                src={`https://www.google.com/maps?q=${encodeURIComponent(siteConfig.contact.mapsQuery)}&output=embed`}
                 loading="lazy"
                 referrerPolicy="no-referrer-when-downgrade"
                 className="h-full min-h-[320px] w-full rounded-2xl border border-line"

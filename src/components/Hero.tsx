@@ -94,6 +94,29 @@ export function Hero() {
               Виж менюто
             </a>
           </motion.div>
+
+          <motion.p
+            initial={{ opacity: 0, y: 18 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.9, delay: 0.48, ease: [0.22, 1, 0.36, 1] }}
+            className="hero-text-shadow mt-6 inline-flex items-center gap-1.5 text-sm text-white/75"
+          >
+            {/* Пин за локация */}
+            <svg
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              aria-hidden
+              className="h-4 w-4 shrink-0 text-gold"
+            >
+              <path d="M12 21s-7-6.2-7-11.5a7 7 0 0 1 14 0C19 14.8 12 21 12 21Z" />
+              <circle cx="12" cy="9.5" r="2.5" />
+            </svg>
+            {siteConfig.heroLocation}
+          </motion.p>
         </div>
       </div>
     </section>

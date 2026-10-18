@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useSyncExternalStore } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { siteConfig } from "@/lib/site-config";
 import { useSofiaNow } from "@/lib/use-sofia-now";
@@ -32,8 +32,20 @@ function pillClass(active: boolean, size: "lg" | "sm") {
   }`;
 }
 
+// Линк към конкретен таб: /menu?tab=soups (key на секцията). Чете се от
+// window след hydration — сайтът е static export, а useSearchParams би
+// изисквал Suspense.
+const noopSubscribe = () => () => {};
+function useTabFromUrl() {
+  const search = useSyncExternalStore(noopSubscribe, () => window.location.search, () => "");
+  const tab = new URLSearchParams(search).get("tab");
+  return menuSections.find((s) => s.key === tab)?.name ?? null;
+}
+
 export function MenuTabs() {
-  const [active, setActive] = useState<string>(menuSections[0].name);
+  const urlSection = useTabFromUrl();
+  const [pickedSection, setActive] = useState<string | null>(null);
+  const active = pickedSection ?? urlSection ?? menuSections[0].name;
   const [pickedDay, setPickedDay] = useState<number | null>(null);
 
   // По подразбиране — днешният ден; в неделя (и преди hydration) — понеделник.

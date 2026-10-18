@@ -2,15 +2,17 @@
 // и не се представя никъде като официален сайт, докато собствениците не
 // одобрят и не поемат проекта официално.
 //
-// Gourmand е квартално място за домашна храна в ж.к. „Христо Ботев“ —
+// Gourmand е квартално място за домашна храна в Кючук Париж, до Събота пазар —
 // работи през деня, за вкъщи и с доставка.
 
 export const siteConfig = {
   name: "Gourmand",
   tagline: "Домашна храна за вкъщи и с доставка",
   heroEyebrow: "Домашна храна · За вкъщи · Пловдив",
-  // Форсирани на точно 2 реда в Hero.tsx — не сливай в едно изречение.
-  heroHeadlineLines: ["Сготвено като у дома", "Пристига топло"],
+  // Всеки елемент е отделен ред в Hero.tsx.
+  heroHeadlineLines: ["Сготвено като у дома"],
+  // Малкият ред с иконата за локация под бутоните в hero.
+  heroLocation: "ул. „Гевгели“ 44 · до Събота пазар",
   // \u00a0 държи тирето на първия ред, вместо да започва втория.
   heroDescription:
     "Домашни ястия от истински продукти, приготвени всеки ден\u00a0– за вкъщи, за офиса или на място на ул. „Гевгели“.",
@@ -28,15 +30,7 @@ export const siteConfig = {
     url: "/gallery/restaurant-interior.jpg",
   },
 
-  galleryImages: [
-    "/gallery/chicken-potatoes.jpg",
-    "/gallery/salad.jpg",
-    "/gallery/pork-cream-sauce.jpg",
-    "/gallery/grilled-fish.jpg",
-    "/gallery/chicken-vegetables.jpg",
-    "/gallery/stuffed-eggplant.jpg",
-  ],
-  city: "ж.к. „Христо Ботев“, Пловдив",
+  city: "Пловдив",
   cuisine: "Домашна храна",
   positioning: "casual-premium", // над средното, не семеен format
   priceRange: "$$–$$$",
@@ -44,9 +38,14 @@ export const siteConfig = {
   contact: {
     phone: "087 892 0254",
     // TODO: реален имейл — да се добави, когато клиентът го предостави.
-    address: "ул. „Гевгели“ 44, ж.к. „Христо Ботев“, Пловдив",
-    mapsUrl:
-      "https://www.google.com/maps/place/Gourmand/@42.1307947,24.7468749,17z/data=!3m1!4b1!4m6!3m5!1s0x14acd04d64b4ac27:0x6c5a16e6a896bad0!8m2!3d42.1307947!4d24.7494552!16s%2Fg%2F11g6wbv774",
+    address: "ул. „Гевгели“ 44, Пловдив (до Събота пазар)",
+    // Разбит адрес за schema.org (JSON-LD в app/page.tsx).
+    streetAddress: "ул. „Гевгели“ 44",
+    addressLocality: "Пловдив",
+    addressCountry: "BG",
+    // Търсене за Google Maps — линка и вградената карта в Контакти.
+    mapsQuery: "ул. Гевгели 44, Пловдив",
+    mapsUrl: "https://www.google.com/maps/search/?api=1&query=%D1%83%D0%BB.%20%D0%93%D0%B5%D0%B2%D0%B3%D0%B5%D0%BB%D0%B8%2044%2C%20%D0%9F%D0%BB%D0%BE%D0%B2%D0%B4%D0%B8%D0%B2",
     facebookUrl: "https://www.facebook.com/gourmandplovdiv",
     instagramUrl: "https://www.instagram.com/gourmand_pld/",
   },
