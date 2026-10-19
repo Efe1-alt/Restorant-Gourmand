@@ -8,9 +8,11 @@ import { siteConfig } from "@/lib/site-config";
 import { useSofiaNow } from "@/lib/use-sofia-now";
 import { LAST_ORDER_KEY, type PlacedOrder } from "@/lib/placed-order";
 import {
+  CARD_PICKUP_ONLY,
   formatCents,
   nextOpening,
   orderTotals,
+  paymentLabels,
   todaysTimeOptions,
   validateOrderForm,
   type FormErrors,
@@ -60,38 +62,56 @@ function PillChoice<T extends string>({
   value,
   options,
   onChange,
+  hint,
+  error,
 }: {
   name: string;
   legend: string;
   value: T;
-  options: readonly (readonly [T, string])[];
+  options: readonly (readonly [T, string] | readonly [T, string, { disabled: boolean }])[];
   onChange: (value: T) => void;
+  hint?: string;
+  error?: string;
 }) {
   return (
-    <fieldset>
+    <fieldset aria-describedby={hint || error ? `${name}-hint` : undefined}>
       <legend className="block text-sm font-medium">{legend}</legend>
       <div className="mt-1.5 flex flex-wrap gap-2">
-        {options.map(([optionValue, label]) => (
-          <label
-            key={optionValue}
-            className={`flex min-h-11 cursor-pointer items-center rounded-full px-5 text-sm font-semibold transition-colors duration-200 has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-terracotta has-[:focus-visible]:ring-offset-2 ${
-              value === optionValue
-                ? "bg-terracotta text-cream"
-                : "border border-line text-ink-soft hover:border-terracotta hover:text-terracotta"
-            }`}
-          >
-            <input
-              type="radio"
-              name={name}
-              value={optionValue}
-              checked={value === optionValue}
-              onChange={() => onChange(optionValue)}
-              className="sr-only"
-            />
-            {label}
-          </label>
-        ))}
+        {options.map(([optionValue, label, opts]) => {
+          const disabled = opts?.disabled ?? false;
+          return (
+            <label
+              key={optionValue}
+              className={`flex min-h-11 items-center rounded-full px-5 text-sm font-semibold transition-colors duration-200 has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-terracotta has-[:focus-visible]:ring-offset-2 ${
+                disabled
+                  ? "cursor-not-allowed border border-line text-ink-soft opacity-50"
+                  : value === optionValue
+                    ? "cursor-pointer bg-terracotta text-cream"
+                    : "cursor-pointer border border-line text-ink-soft hover:border-terracotta hover:text-terracotta"
+              }`}
+            >
+              <input
+                type="radio"
+                name={name}
+                value={optionValue}
+                checked={value === optionValue}
+                disabled={disabled}
+                onChange={() => onChange(optionValue)}
+                className="sr-only"
+              />
+              {label}
+            </label>
+          );
+        })}
       </div>
+      {(error || hint) && (
+        <p
+          id={`${name}-hint`}
+          className={`mt-1.5 text-sm ${error ? "font-medium text-terracotta-dark" : "text-ink-soft"}`}
+        >
+          {error ?? hint}
+        </p>
+      )}
     </fieldset>
   );
 }
@@ -292,7 +312,10 @@ export function CheckoutForm() {
               name="fulfillment"
               legend="Начин на получаване"
               value={fulfillment}
-              onChange={setFulfillment}
+              onChange={(next) => {
+                setFulfillment(next);
+                if (next === "delivery") setPayment("cash");
+              }}
               options={[
                 ["delivery", "Доставка"],
                 ["pickup", "Вземане от място"],
@@ -353,9 +376,11 @@ export function CheckoutForm() {
               value={payment}
               onChange={setPayment}
               options={[
-                ["cash", "В брой"],
-                ["card", fulfillment === "delivery" ? "С карта при доставка" : "С карта на място"],
+                ["cash", paymentLabels.cash],
+                ["card", paymentLabels.card, { disabled: fulfillment === "delivery" }],
               ]}
+              hint={fulfillment === "delivery" ? CARD_PICKUP_ONLY : undefined}
+              error={errors.payment}
             />
           </div>
 

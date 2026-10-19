@@ -6,6 +6,7 @@ import {
   MAX_QTY,
   orderTotals,
   parsePriceCents,
+  paymentLabels,
   sofiaNow,
   timeLabel,
   todaysLunchDayId,
@@ -136,7 +137,7 @@ export async function notifyRestaurant(order: PlacedOrder) {
     order.address && `Адрес: ${order.address}`,
     ...order.items.map((i) => `  ${i.quantity} × ${i.name} = ${(i.lineTotal / 100).toFixed(2)} €`),
     `Общо: ${(order.totalCents / 100).toFixed(2)} €${order.deliveryCents === null ? " + доставка" : ""}`,
-    `Плащане: ${order.payment === "cash" ? "в брой" : "с карта"}`,
+    `Плащане: ${paymentLabels[order.payment]}`,
     order.note && `Бележка: ${order.note}`,
   ].filter(Boolean);
   console.log(lines.join("\n"));

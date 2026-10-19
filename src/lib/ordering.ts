@@ -120,8 +120,10 @@ export type Payment = "cash" | "card";
 
 export const paymentLabels: Record<Payment, string> = {
   cash: "В брой",
-  card: "С карта при доставка",
+  card: "С карта",
 };
+
+export const CARD_PICKUP_ONLY = "Плащане с карта е възможно само при вземане от място.";
 
 export const fulfillmentLabels: Record<Fulfillment, string> = {
   delivery: "Доставка",
@@ -190,6 +192,8 @@ export function validateOrderForm(form: OrderForm, now: SofiaTime): FormErrors {
   if (form.note.length > 500) errors.note = "Бележката е до 500 символа.";
   if (form.payment !== "cash" && form.payment !== "card") {
     errors.payment = "Изберете начин на плащане.";
+  } else if (form.payment === "card" && form.fulfillment === "delivery") {
+    errors.payment = CARD_PICKUP_ONLY;
   }
   return errors;
 }

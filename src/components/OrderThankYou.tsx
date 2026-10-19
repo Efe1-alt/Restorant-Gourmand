@@ -71,11 +71,7 @@ export function OrderThankYou() {
           )}
           <div>
             <dt className="text-ink-soft">Плащане</dt>
-            <dd className="font-medium">
-              {order.payment === "card" && order.fulfillment === "pickup"
-                ? "С карта на място"
-                : paymentLabels[order.payment]}
-            </dd>
+            <dd className="font-medium">{paymentLabels[order.payment]}</dd>
           </div>
           <div>
             <dt className="text-ink-soft">Телефон</dt>
