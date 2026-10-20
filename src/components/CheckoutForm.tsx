@@ -1,61 +1,51 @@
 "use client";
 
-import { useRef, useState, type FormEvent, type ReactNode } from "react";
+import { useMemo, useRef, useState, type FormEvent, type ReactNode } from "react";
 import Link from "next/link";
+import Script from "next/script";
 import { useRouter } from "next/navigation";
 import { useCart } from "@/lib/cart";
+import { checkoutState, nextOrderingDay, slotLabel, timeOptions, type Fulfilment } from "@/lib/hours";
+import { localizeWeight, percentLabel } from "@/lib/i18n";
+import { useLocale, useT } from "@/lib/locale-context";
+import { computeQuote, formatCents } from "@/lib/pricing";
+import { href } from "@/lib/routes";
+import { useShop } from "@/lib/shop-context";
 import { siteConfig } from "@/lib/site-config";
 import { useSofiaNow } from "@/lib/use-sofia-now";
-import { LAST_ORDER_KEY, type PlacedOrder } from "@/lib/placed-order";
 import {
-  CARD_PICKUP_ONLY,
-  formatCents,
-  nextOpening,
-  orderTotals,
-  paymentLabels,
-  todaysTimeOptions,
-  validateOrderForm,
+  FIELD_ORDER,
+  allowedPayments,
+  validateCheckout,
+  type CheckoutForm as Form,
   type FormErrors,
-  type Fulfillment,
-  type OrderForm,
-  type OrderRequest,
-  type Payment,
-} from "@/lib/ordering";
+  type PaymentMethod,
+} from "@/lib/validation";
 
 const inputClass =
-  "mt-1.5 w-full rounded-lg border bg-cream px-4 py-3 text-base outline-none transition-colors focus:border-terracotta aria-[invalid=true]:border-terracotta-dark";
+  "mt-1.5 w-full rounded-lg border bg-cream px-4 py-3 text-base outline-none transition-colors focus:border-terracotta";
 
-const FIELD_ORDER: (keyof OrderForm)[] = ["fulfillment", "name", "phone", "address", "time", "payment", "note"];
-
-function Field({
-  id,
-  label,
-  error,
-  children,
-  className = "",
-}: {
-  id: string;
-  label: ReactNode;
-  error?: string;
-  children: ReactNode;
-  className?: string;
-}) {
+function Field({ id, label, error, hint, children, className = "" }: { id: string; label: ReactNode; error?: string; hint?: string; children: ReactNode; className?: string }) {
   return (
     <div className={className}>
       <label htmlFor={id} className="block text-sm font-medium">
         {label}
       </label>
       {children}
-      {error && (
+      {error ? (
         <p id={`${id}-error`} className="mt-1.5 text-sm font-medium text-terracotta-dark">
           {error}
         </p>
-      )}
+      ) : hint ? (
+        <p id={`${id}-hint`} className="mt-1.5 text-sm text-ink-soft">
+          {hint}
+        </p>
+      ) : null}
     </div>
   );
 }
 
-// Хапчета за избор (радио бутони), в стила на табовете в менюто.
+// Pill radio buttons, in the style of the menu tabs.
 function PillChoice<T extends string>({
   name,
   legend,
@@ -68,7 +58,7 @@ function PillChoice<T extends string>({
   name: string;
   legend: string;
   value: T;
-  options: readonly (readonly [T, string] | readonly [T, string, { disabled: boolean }])[];
+  options: { value: T; label: ReactNode }[];
   onChange: (value: T) => void;
   hint?: string;
   error?: string;
@@ -77,38 +67,20 @@ function PillChoice<T extends string>({
     <fieldset aria-describedby={hint || error ? `${name}-hint` : undefined}>
       <legend className="block text-sm font-medium">{legend}</legend>
       <div className="mt-1.5 flex flex-wrap gap-2">
-        {options.map(([optionValue, label, opts]) => {
-          const disabled = opts?.disabled ?? false;
-          return (
-            <label
-              key={optionValue}
-              className={`flex min-h-11 items-center rounded-full px-5 text-sm font-semibold transition-colors duration-200 has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-terracotta has-[:focus-visible]:ring-offset-2 ${
-                disabled
-                  ? "cursor-not-allowed border border-line text-ink-soft opacity-50"
-                  : value === optionValue
-                    ? "cursor-pointer bg-terracotta text-cream"
-                    : "cursor-pointer border border-line text-ink-soft hover:border-terracotta hover:text-terracotta"
-              }`}
-            >
-              <input
-                type="radio"
-                name={name}
-                value={optionValue}
-                checked={value === optionValue}
-                disabled={disabled}
-                onChange={() => onChange(optionValue)}
-                className="sr-only"
-              />
-              {label}
-            </label>
-          );
-        })}
+        {options.map((o) => (
+          <label
+            key={o.value}
+            className={`flex min-h-11 cursor-pointer items-center rounded-full px-5 text-sm font-semibold transition-colors duration-200 has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-terracotta has-[:focus-visible]:ring-offset-2 ${
+              value === o.value ? "bg-terracotta text-cream" : "border border-line text-ink-soft hover:border-terracotta hover:text-terracotta"
+            }`}
+          >
+            <input type="radio" name={name} value={o.value} checked={value === o.value} onChange={() => onChange(o.value)} className="sr-only" />
+            {o.label}
+          </label>
+        ))}
       </div>
       {(error || hint) && (
-        <p
-          id={`${name}-hint`}
-          className={`mt-1.5 text-sm ${error ? "font-medium text-terracotta-dark" : "text-ink-soft"}`}
-        >
+        <p id={`${name}-hint`} className={`mt-1.5 text-sm ${error ? "font-medium text-terracotta-dark" : "text-ink-soft"}`}>
           {error ?? hint}
         </p>
       )}
@@ -116,98 +88,89 @@ function PillChoice<T extends string>({
   );
 }
 
-function Summary({ fulfillment }: { fulfillment: Fulfillment }) {
-  const { items, subtotalCents, openCart } = useCart();
-  const totals = orderTotals(subtotalCents, fulfillment);
-  return (
-    <div>
-      <ul className="divide-y divide-line">
-        {items.map((item) => (
-          <li key={item.id} className="flex justify-between gap-4 py-3 text-sm">
-            <div className="min-w-0">
-              <p className="font-medium">
-                {item.quantity} × {item.name}
-              </p>
-              {item.weight && <p className="mt-0.5 text-ink-soft">{item.weight}</p>}
-            </div>
-            <span className="shrink-0 font-semibold text-terracotta">
-              {formatCents(item.price * item.quantity)}
-            </span>
-          </li>
-        ))}
-      </ul>
-      <dl className="mt-2 space-y-1.5 border-t border-line pt-3 text-sm">
-        <div className="flex justify-between">
-          <dt className="text-ink-soft">Междинна сума</dt>
-          <dd>{formatCents(totals.subtotalCents)}</dd>
-        </div>
-        <div className="flex justify-between gap-4">
-          <dt className="text-ink-soft">Доставка</dt>
-          {/* ПОТВЪРДИ С КЛИЕНТА: цената идва от siteConfig.ordering.deliveryFeeCents */}
-          <dd className="text-right">
-            {totals.deliveryCents === null ? "Уточнява се по телефона" : formatCents(totals.deliveryCents)}
-          </dd>
-        </div>
-        <div className="flex justify-between border-t border-line pt-2 text-base font-semibold">
-          <dt>Общо</dt>
-          <dd>{formatCents(totals.totalCents)}</dd>
-        </div>
-      </dl>
-      <button
-        type="button"
-        onClick={openCart}
-        className="mt-3 min-h-11 text-sm font-semibold text-terracotta hover:text-terracotta-dark"
-      >
-        Промени количката
-      </button>
-    </div>
-  );
-}
-
 export function CheckoutForm() {
   const router = useRouter();
-  const { items, count, subtotalCents, clear } = useCart();
+  const locale = useLocale();
+  const dict = useT();
+  const t = dict.checkout;
+  const { config } = useShop();
+  const { items, count, loaded, clear, openCart } = useCart();
   const now = useSofiaNow();
   const formRef = useRef<HTMLFormElement>(null);
-  const [fulfillment, setFulfillment] = useState<Fulfillment>("delivery");
-  const [payment, setPayment] = useState<Payment>("cash");
+
+  const [fulfilment, setFulfilment] = useState<Fulfilment>("delivery");
+  const [payment, setPayment] = useState<PaymentMethod>(config.cardEnabled ? "card" : "cash");
+  const [districtId, setDistrictId] = useState("");
   const [errors, setErrors] = useState<FormErrors>({});
-  const [status, setStatus] = useState<"idle" | "submitting" | "done">("idle");
+  const [status, setStatus] = useState<"idle" | "submitting" | "redirecting">("idle");
   const [serverError, setServerError] = useState<string | null>(null);
 
-  const options = now ? todaysTimeOptions(now) : null;
-  const closedToday = options !== null && !options.asap && options.slots.length === 0;
-  const totals = orderTotals(subtotalCents, fulfillment);
+  const district = config.districts.find((d) => String(d.id) === districtId) ?? null;
+  const quote = useMemo(
+    () =>
+      computeQuote({
+        lines: items.map((i) => ({ unitPriceCents: i.priceCents, quantity: i.quantity })),
+        fulfilment,
+        districtFeeCents: district?.feeCents ?? null,
+        settings: config.pricing,
+      }),
+    [items, fulfilment, district, config.pricing]
+  );
+  const state = now ? checkoutState(config.ordering, now) : null;
+  const options = now ? timeOptions(config.ordering, now, fulfilment) : null;
+  const payments = allowedPayments(fulfilment, config.cardEnabled);
+  const effectivePayment = payments.includes(payment) ? payment : payments[payments.length - 1];
+  const discountLabel = percentLabel(config.pricing.pickupDiscountBps, locale);
 
-  if (status === "done") {
-    return <p className="py-24 text-center text-ink-soft">Пренасочване…</p>;
+  if (!loaded || status === "redirecting") {
+    return <p className="py-24 text-center text-ink-soft">{status === "redirecting" ? t.redirecting : "…"}</p>;
   }
 
   if (items.length === 0) {
     return (
       <div className="mx-auto max-w-md py-16 text-center">
-        <p className="text-ink-soft">Количката е празна</p>
-        <Link
-          href="/menu"
-          className="mt-6 inline-flex min-h-11 items-center rounded-full bg-terracotta px-7 text-sm font-semibold text-cream transition-colors duration-200 hover:bg-terracotta-dark"
-        >
-          Разгледай менюто
+        <p className="text-ink-soft">{t.emptyCart}</p>
+        <Link href={href("menu", locale)} className="mt-6 inline-flex min-h-11 items-center rounded-full bg-terracotta px-7 text-sm font-semibold text-cream transition-colors duration-200 hover:bg-terracotta-dark">
+          {t.browseMenu}
         </Link>
       </div>
     );
   }
 
-  function readForm(form: HTMLFormElement): OrderForm {
+  function closedMessage() {
+    if (!state || state.open || !now) return null;
+    const c = t.closed;
+    let text = state.reason === "not_yet_open" ? c.not_yet_open(state.opensAt!) : c[state.reason];
+    if (state.reason !== "hours_unconfirmed" && state.reason !== "not_yet_open" && state.reason !== "paused") {
+      const next = nextOrderingDay(config.ordering, now);
+      if (next) text += c.next(next.offset === 1 ? c.tomorrow(next.opens) : c.onDay(dict.week[next.weekday], next.opens));
+    }
+    return (
+      <div role="status" className="rounded-xl border border-gold/60 bg-cream px-5 py-4 text-sm">
+        <p className="font-medium">{text}</p>
+        {config.pauseMessage && <p className="mt-1 text-ink-soft">{config.pauseMessage}</p>}
+        <p className="mt-1 text-ink-soft">
+          <a href={`tel:${siteConfig.contact.phoneE164}`} className="font-semibold text-terracotta hover:text-terracotta-dark">
+            {c.callUs(siteConfig.contact.phone)}
+          </a>
+        </p>
+      </div>
+    );
+  }
+
+  function readForm(form: HTMLFormElement): Form {
     const data = new FormData(form);
     const get = (key: string) => String(data.get(key) ?? "");
     return {
-      fulfillment,
-      payment,
+      fulfilment,
+      payment: effectivePayment,
+      districtId,
       name: get("name").trim(),
       phone: get("phone").trim(),
+      email: get("email").trim(),
       address: get("address").trim(),
       time: get("time"),
-      note: get("note").trim(),
+      notes: get("notes").trim(),
     };
   }
 
@@ -218,63 +181,67 @@ export function CheckoutForm() {
 
   async function handleSubmit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
-    if (!now || status === "submitting") return;
+    if (!now || status !== "idle") return;
     setServerError(null);
-
-    const form = readForm(e.currentTarget);
-    const found = validateOrderForm(form, now);
+    const formEl = e.currentTarget;
+    const form = readForm(formEl);
+    const found = validateCheckout(form, {
+      locale,
+      now,
+      config: config.ordering,
+      activeDistrictIds: config.districts.map((d) => String(d.id)),
+      cardEnabled: config.cardEnabled,
+    });
     setErrors(found);
     if (Object.keys(found).length > 0) {
       focusFirstError(found);
       return;
     }
-
+    const extra = new FormData(formEl);
     setStatus("submitting");
-    const payload: OrderRequest = {
-      ...form,
-      items: items.map((i) => ({ id: i.id, quantity: i.quantity })),
-    };
-
     try {
       const res = await fetch("/api/order", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
+        body: JSON.stringify({
+          ...form,
+          locale,
+          website: String(extra.get("website") ?? ""),
+          turnstileToken: String(extra.get("cf-turnstile-response") ?? ""),
+          items: items.map((i) => ({ dishId: i.dishId, quantity: i.quantity })),
+        }),
       });
       const data = (await res.json().catch(() => ({}))) as {
-        order?: PlacedOrder;
+        statusUrl?: string;
+        checkoutUrl?: string | null;
         message?: string;
         errors?: FormErrors;
       };
-
-      if (res.ok && data.order) {
-        try {
-          window.sessionStorage.setItem(LAST_ORDER_KEY, JSON.stringify(data.order));
-        } catch {}
-        setStatus("done");
-        router.push("/porachka/blagodarim");
+      if (res.ok && data.statusUrl) {
+        // The order now holds the items; a new basket starts empty.
         clear();
+        if (data.checkoutUrl) {
+          setStatus("redirecting");
+          window.location.assign(data.checkoutUrl);
+        } else {
+          router.push(data.statusUrl);
+        }
         return;
       }
-
       setStatus("idle");
       if (data.errors && Object.keys(data.errors).length > 0) {
         setErrors(data.errors);
         focusFirstError(data.errors);
-      } else if (res.status === 409 && data.message) {
-        setServerError(data.message);
       } else {
-        throw new Error(data.message ?? `HTTP ${res.status}`);
+        setServerError(data.message ?? t.genericError(siteConfig.contact.phone));
       }
     } catch {
       setStatus("idle");
-      setServerError(
-        `Нещо се обърка. Моля, опитайте отново или се обадете на ${siteConfig.contact.phone}.`
-      );
+      setServerError(t.genericError(siteConfig.contact.phone));
     }
   }
 
-  const fieldProps = (name: keyof OrderForm) => ({
+  const fieldProps = (name: keyof Form) => ({
     id: name,
     name,
     "aria-invalid": errors[name] ? true : undefined,
@@ -282,12 +249,63 @@ export function CheckoutForm() {
     className: `${inputClass} ${errors[name] ? "border-terracotta-dark" : "border-line"}`,
   });
 
-  const summaryTitle = `Вашата поръчка · ${count} · ${formatCents(totals.totalCents)}`;
-  const blocked = totals.missingCents > 0;
+  const closed = state !== null && !state.open;
+  const belowMinimum = fulfilment === "delivery" && quote.missingForMinimumCents > 0;
+  const summaryTitle = t.summaryTitle(count, formatCents(quote.totalCents, locale));
+
+  const summary = (
+    <div>
+      <ul className="divide-y divide-line">
+        {items.map((item) => (
+          <li key={item.dishId} className="flex justify-between gap-4 py-3 text-sm">
+            <div className="min-w-0">
+              <p className="font-medium">
+                {item.quantity} × {item.name}
+              </p>
+              {item.weight && <p className="mt-0.5 text-ink-soft">{localizeWeight(item.weight, locale)}</p>}
+            </div>
+            <span className="shrink-0 font-semibold text-terracotta">{formatCents(item.priceCents * item.quantity, locale)}</span>
+          </li>
+        ))}
+      </ul>
+      <dl className="mt-2 space-y-1.5 border-t border-line pt-3 text-sm" aria-live="polite">
+        <div className="flex justify-between">
+          <dt className="text-ink-soft">{t.subtotal}</dt>
+          <dd>{formatCents(quote.subtotalCents, locale)}</dd>
+        </div>
+        {fulfilment === "pickup" && quote.discountCents > 0 && (
+          <div className="flex justify-between">
+            <dt className="text-ink-soft">{t.discount(discountLabel)}</dt>
+            <dd className="text-olive">{formatCents(-quote.discountCents, locale)}</dd>
+          </div>
+        )}
+        {fulfilment === "delivery" && (
+          <div className="flex justify-between gap-4">
+            <dt className="text-ink-soft">{t.deliveryFee}</dt>
+            <dd className="text-right">
+              {quote.freeDelivery ? t.free : district ? formatCents(quote.deliveryFeeCents, locale) : t.chooseDistrict}
+            </dd>
+          </div>
+        )}
+        <div className="flex justify-between border-t border-line pt-2 text-base font-semibold">
+          <dt>{t.total}</dt>
+          <dd data-testid="order-total">{formatCents(quote.totalCents, locale)}</dd>
+        </div>
+      </dl>
+      {fulfilment === "delivery" && quote.missingForFreeDeliveryCents !== null && quote.missingForFreeDeliveryCents > 0 && !belowMinimum && (
+        <p className="mt-2 text-xs text-ink-soft">{t.freeDeliveryFrom(formatCents(quote.missingForFreeDeliveryCents, locale))}</p>
+      )}
+      <button type="button" onClick={openCart} className="mt-3 min-h-11 text-sm font-semibold text-terracotta hover:text-terracotta-dark">
+        {t.editCart}
+      </button>
+    </div>
+  );
 
   return (
     <div className="grid gap-8 lg:grid-cols-12 lg:gap-12">
-      {/* На мобилни обобщението е отгоре, сгънато. */}
+      {config.turnstileSiteKey && <Script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer />}
+
+      {/* On phones the summary sits on top, folded. */}
       <details className="group rounded-2xl border border-line bg-cream-soft lg:hidden">
         <summary className="flex min-h-12 cursor-pointer list-none items-center justify-between gap-4 px-5 py-3 text-sm font-semibold [&::-webkit-details-marker]:hidden">
           {summaryTitle}
@@ -295,75 +313,91 @@ export function CheckoutForm() {
             ▾
           </span>
         </summary>
-        <div className="px-5 pb-4">
-          <Summary fulfillment={fulfillment} />
-        </div>
+        <div className="px-5 pb-4">{summary}</div>
       </details>
 
-      <form
-        ref={formRef}
-        onSubmit={handleSubmit}
-        noValidate
-        className="rounded-2xl border border-line bg-cream-soft p-5 sm:p-8 lg:col-span-7"
-      >
+      <form ref={formRef} onSubmit={handleSubmit} noValidate className="rounded-2xl border border-line bg-cream-soft p-5 sm:p-8 lg:col-span-7">
+        {closed && <div className="mb-6">{closedMessage()}</div>}
+
         <div className="grid gap-6 sm:grid-cols-2">
           <div className="sm:col-span-2">
             <PillChoice
-              name="fulfillment"
-              legend="Начин на получаване"
-              value={fulfillment}
-              onChange={(next) => {
-                setFulfillment(next);
-                if (next === "delivery") setPayment("cash");
-              }}
+              name="fulfilment"
+              legend={t.fulfilment}
+              value={fulfilment}
+              onChange={setFulfilment}
               options={[
-                ["delivery", "Доставка"],
-                ["pickup", "Вземане от място"],
+                { value: "delivery", label: t.delivery },
+                {
+                  value: "pickup",
+                  label: (
+                    <>
+                      {t.pickup}
+                      {config.pricing.pickupDiscountBps > 0 && (
+                        <span className={`ml-2 rounded-full px-2 py-0.5 text-[11px] ${fulfilment === "pickup" ? "bg-cream/20" : "bg-olive/10 text-olive"}`}>
+                          −{discountLabel}
+                        </span>
+                      )}
+                    </>
+                  ),
+                },
               ]}
             />
           </div>
 
-          <Field id="name" label="Име" error={errors.name}>
-            <input {...fieldProps("name")} autoComplete="name" placeholder="Вашето име" />
+          <Field id="name" label={t.name} error={errors.name}>
+            <input {...fieldProps("name")} autoComplete="name" placeholder={t.namePlaceholder} maxLength={100} />
           </Field>
 
-          <Field id="phone" label="Телефон" error={errors.phone}>
-            <input
-              {...fieldProps("phone")}
-              type="tel"
-              inputMode="tel"
-              autoComplete="tel"
-              placeholder="08XXXXXXXX"
-            />
+          <Field id="phone" label={t.phone} error={errors.phone}>
+            <input {...fieldProps("phone")} type="tel" inputMode="tel" autoComplete="tel" placeholder={t.phonePlaceholder} maxLength={20} />
           </Field>
 
-          {fulfillment === "delivery" ? (
-            <Field id="address" label="Адрес за доставка" error={errors.address} className="sm:col-span-2">
-              <input
-                {...fieldProps("address")}
-                autoComplete="street-address"
-                placeholder="Улица, номер, блок, вход, етаж"
-              />
-            </Field>
+          <Field
+            id="email"
+            label={
+              <>
+                {t.email} <span className="font-normal text-ink-soft">{t.optional}</span>
+              </>
+            }
+            error={errors.email}
+            hint={t.emailHint}
+            className="sm:col-span-2"
+          >
+            <input {...fieldProps("email")} type="email" inputMode="email" autoComplete="email" maxLength={254} />
+          </Field>
+
+          {fulfilment === "delivery" ? (
+            <>
+              <Field id="districtId" label={t.district} error={errors.districtId}>
+                <select {...fieldProps("districtId")} value={districtId} onChange={(e) => setDistrictId(e.target.value)}>
+                  <option value="" disabled>
+                    {t.districtPlaceholder}
+                  </option>
+                  {config.districts.map((d) => (
+                    <option key={d.id} value={d.id}>
+                      {d.name} — {d.feeCents === 0 ? t.districtFree : t.districtFee(formatCents(d.feeCents, locale))}
+                    </option>
+                  ))}
+                </select>
+              </Field>
+              <Field id="address" label={t.address} error={errors.address}>
+                <input {...fieldProps("address")} autoComplete="street-address" placeholder={t.addressPlaceholder} maxLength={300} />
+              </Field>
+            </>
           ) : (
-            <p className="text-sm text-ink-soft sm:col-span-2">Вземане от {siteConfig.contact.address}.</p>
+            <p className="text-sm text-ink-soft sm:col-span-2">{t.pickupFrom(siteConfig.contact.address)}</p>
           )}
 
-          {/* ПОТВЪРДИ С КЛИЕНТА: часовете идват от siteConfig.orderHours (работното време). */}
-          <Field id="time" label="Желан час" error={errors.time}>
-            <select
-              key={options ? `${options.asap}-${options.slots[0] ?? ""}` : "loading"}
-              {...fieldProps("time")}
-              defaultValue=""
-              disabled={options === null || closedToday}
-            >
+          <Field id="time" label={t.time} error={errors.time} className="sm:col-span-2">
+            <select key={`${fulfilment}-${options?.slots[0] ?? ""}`} {...fieldProps("time")} defaultValue={options?.asap ? "asap" : ""} disabled={!options || closed}>
               <option value="" disabled>
-                {closedToday ? "За днес вече не приемаме" : "Изберете час"}
+                {t.chooseTime}
               </option>
-              {options?.asap && <option value="asap">Възможно най-скоро</option>}
-              {options?.slots.map((t) => (
-                <option key={t} value={t}>
-                  Днес в {t}
+              {options?.asap && <option value="asap">{t.asap}</option>}
+              {options?.slots.map((slot) => (
+                <option key={slot} value={slot}>
+                  {t.slot(slotLabel(slot))}
                 </option>
               ))}
             </select>
@@ -372,48 +406,44 @@ export function CheckoutForm() {
           <div className="sm:col-span-2">
             <PillChoice
               name="payment"
-              legend="Начин на плащане"
-              value={payment}
+              legend={t.payment}
+              value={effectivePayment}
               onChange={setPayment}
-              options={[
-                ["cash", paymentLabels.cash],
-                ["card", paymentLabels.card, { disabled: fulfillment === "delivery" }],
-              ]}
-              hint={fulfillment === "delivery" ? CARD_PICKUP_ONLY : undefined}
+              options={payments.map((p) => ({
+                value: p,
+                label: p === "card" ? t.payCard : p === "cash" ? t.payCash : t.payAtPickup,
+              }))}
+              hint={effectivePayment === "card" ? t.cardNote : fulfilment === "delivery" ? t.noCardAtDoor : undefined}
               error={errors.payment}
             />
           </div>
 
           <Field
-            id="note"
+            id="notes"
             label={
               <>
-                Бележка <span className="font-normal text-ink-soft">(по избор)</span>
+                {t.notes} <span className="font-normal text-ink-soft">{t.optional}</span>
               </>
             }
-            error={errors.note}
+            error={errors.notes}
             className="sm:col-span-2"
           >
-            <textarea
-              {...fieldProps("note")}
-              rows={2}
-              maxLength={500}
-              placeholder="Напр. без лук, звънецът не работи"
-            />
+            <textarea {...fieldProps("notes")} rows={2} maxLength={500} placeholder={t.notesPlaceholder} />
           </Field>
+
+          {/* Spam trap: hidden from people and screen readers, tempting to bots. */}
+          <div aria-hidden="true" className="absolute -left-[9999px] h-px w-px overflow-hidden">
+            <label htmlFor="website">Website</label>
+            <input id="website" name="website" type="text" tabIndex={-1} autoComplete="off" defaultValue="" />
+          </div>
+
+          {config.turnstileSiteKey && (
+            <div className="cf-turnstile sm:col-span-2" data-sitekey={config.turnstileSiteKey} data-language={locale} />
+          )}
         </div>
 
-        {closedToday && now && (
-          <p className="mt-5 text-sm text-ink-soft">
-            За днес вече не приемаме онлайн поръчки
-            {nextOpening(now) ? ` — заповядайте ${nextOpening(now)}.` : "."}
-          </p>
-        )}
-
-        {blocked && (
-          <p className="mt-5 text-sm font-medium text-terracotta-dark">
-            Остават {formatCents(totals.missingCents)} до минималната поръчка
-          </p>
+        {belowMinimum && (
+          <p className="mt-5 text-sm font-medium text-terracotta-dark">{t.minimum(formatCents(quote.missingForMinimumCents, locale))}</p>
         )}
 
         {serverError && (
@@ -424,19 +454,37 @@ export function CheckoutForm() {
 
         <button
           type="submit"
-          disabled={status === "submitting" || closedToday || blocked || now === null}
+          disabled={status !== "idle" || closed || belowMinimum || now === null}
           className="mt-6 flex min-h-12 w-full items-center justify-center rounded-full bg-terracotta px-8 text-sm font-semibold text-cream transition-colors duration-200 hover:bg-terracotta-dark disabled:cursor-not-allowed disabled:opacity-60 sm:w-auto"
         >
-          {status === "submitting" ? "Изпращане…" : "Изпрати поръчката"}
+          {status === "submitting" ? t.submitting : effectivePayment === "card" ? t.submitCard : t.submitCash}
+          {status === "idle" && <span className="ml-2 font-normal opacity-90">· {formatCents(quote.totalCents, locale)}</span>}
         </button>
+
+        <p className="mt-4 text-xs text-ink-soft">
+          {(() => {
+            const c = t.consent(t.privacyLink, t.termsLink);
+            return (
+              <>
+                {c.before}
+                <Link href={href("privacy", locale)} className="underline hover:text-terracotta">
+                  {c.privacy}
+                </Link>
+                {c.middle}
+                <Link href={href("terms", locale)} className="underline hover:text-terracotta">
+                  {c.terms}
+                </Link>
+                {c.after}
+              </>
+            );
+          })()}
+        </p>
       </form>
 
       <aside className="hidden lg:col-span-5 lg:block">
         <div className="sticky top-28 rounded-2xl border border-line bg-cream-soft p-6">
-          <h2 className="text-xl font-medium">Вашата поръчка</h2>
-          <div className="mt-2">
-            <Summary fulfillment={fulfillment} />
-          </div>
+          <h2 className="text-xl font-medium">{t.summary}</h2>
+          <div className="mt-2">{summary}</div>
         </div>
       </aside>
     </div>

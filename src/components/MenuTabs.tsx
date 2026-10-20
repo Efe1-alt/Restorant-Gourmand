@@ -2,17 +2,9 @@
 
 import { useState, useSyncExternalStore } from "react";
 import { AnimatePresence, motion } from "framer-motion";
-import { siteConfig } from "@/lib/site-config";
-import { useSofiaNow } from "@/lib/use-sofia-now";
+import type { MenuView } from "@/lib/catalog-types";
+import { useT } from "@/lib/locale-context";
 import { DishCard } from "./DishCard";
-import {
-  LUNCH_SECTION,
-  findMenuEntry,
-  lunchDays,
-  lunchEntryId,
-  menuSections,
-  sectionEntryId,
-} from "@/data/menu";
 
 // Хапчетата се скролват хоризонтално на един ред на мобилни, а от sm нагоре
 // се пренасят и центрират. -mx/px пускат скрола до ръба на екрана.
@@ -20,81 +12,81 @@ const pillRow =
   "-mx-5 flex gap-2 overflow-x-auto px-5 [scrollbar-width:none] sm:mx-0 sm:flex-wrap sm:justify-center sm:overflow-visible sm:px-0 [&::-webkit-scrollbar]:hidden";
 
 function pillClass(active: boolean, size: "lg" | "sm") {
-  // На мобилни поне 44px височина (min-h-11), за да се натискат лесно.
   const sizing =
-    size === "lg"
-      ? "min-h-11 px-5 text-sm sm:min-h-0 sm:py-2.5"
-      : "min-h-11 px-4 text-xs sm:min-h-0 sm:py-1.5";
+    size === "lg" ? "min-h-11 px-5 text-sm sm:min-h-0 sm:py-2.5" : "min-h-11 px-4 text-xs sm:min-h-0 sm:py-1.5";
   return `shrink-0 whitespace-nowrap rounded-full font-semibold transition-colors duration-200 ${sizing} ${
-    active
-      ? "bg-terracotta text-cream"
-      : "border border-line text-ink-soft hover:border-terracotta hover:text-terracotta"
+    active ? "bg-terracotta text-cream" : "border border-line text-ink-soft hover:border-terracotta hover:text-terracotta"
   }`;
 }
 
-// Линк към конкретен таб: /menu?tab=soups (key на секцията). Чете се от
-// window след hydration — сайтът е static export, а useSearchParams би
-// изисквал Suspense.
+const LUNCH = "lunch";
+
+// Линк към конкретен таб: /menu?tab=soups. Чете се от window след hydration.
 const noopSubscribe = () => () => {};
 function useTabFromUrl() {
   const search = useSyncExternalStore(noopSubscribe, () => window.location.search, () => "");
-  const tab = new URLSearchParams(search).get("tab");
-  return menuSections.find((s) => s.key === tab)?.name ?? null;
+  return new URLSearchParams(search).get("tab");
 }
 
-export function MenuTabs() {
-  const urlSection = useTabFromUrl();
-  const [pickedSection, setActive] = useState<string | null>(null);
-  const active = pickedSection ?? urlSection ?? menuSections[0].name;
-  const [pickedDay, setPickedDay] = useState<number | null>(null);
+export function MenuTabs({ view }: { view: MenuView }) {
+  const t = useT();
+  const urlTab = useTabFromUrl();
+  const tabs = [{ slug: LUNCH, name: t.menu.lunch }, ...view.categories.map((c) => ({ slug: c.slug, name: c.name }))];
+  const [picked, setPicked] = useState<string | null>(null);
+  const active = picked ?? (tabs.some((tab) => tab.slug === urlTab) ? urlTab! : LUNCH);
+  const [pickedDay, setPickedDay] = useState<string | null>(null);
 
-  // По подразбиране — днешният ден; в неделя (и преди hydration) — понеделник.
-  const weekday = useSofiaNow()?.weekday ?? null;
-  const isSunday = weekday === 0;
-  const todayIndex = weekday === null || isSunday ? 0 : weekday - 1;
-  const dayIndex = pickedDay ?? todayIndex;
+  const todayIndex = view.week.findIndex((d) => d.isToday);
+  const day = view.week.find((d) => d.date === pickedDay) ?? view.week[todayIndex] ?? null;
+  const showingToday = day?.isToday ?? false;
 
-  const isLunch = active === LUNCH_SECTION;
-  const section = menuSections.find((s) => s.name === active) ?? menuSections[0];
-  const day = lunchDays[dayIndex];
-  const items = isLunch ? day.items : section.items;
-  const listKey = isLunch ? `${active}-${day.id}` : active;
+  const isLunch = active === LUNCH;
+  const category = view.categories.find((c) => c.slug === active);
+  const dishes = isLunch ? (day?.dishes ?? []) : (category?.dishes ?? []);
+  const listKey = isLunch ? `${LUNCH}-${day?.date ?? "none"}` : active;
+  const unavailableLabel = isLunch && day && !showingToday ? t.onlyOn[day.weekday] : undefined;
 
   return (
     <div>
-      <div className={pillRow}>
-        {menuSections.map((s) => (
+      <div className={pillRow} role="group" aria-label={t.menu.title}>
+        {tabs.map((tab) => (
           <button
-            key={s.name}
+            key={tab.slug}
             type="button"
-            onClick={() => setActive(s.name)}
-            aria-pressed={active === s.name}
-            className={pillClass(active === s.name, "lg")}
+            onClick={() => setPicked(tab.slug)}
+            aria-pressed={active === tab.slug}
+            className={pillClass(active === tab.slug, "lg")}
           >
-            {s.name}
+            {tab.name}
           </button>
         ))}
       </div>
 
       {isLunch && (
         <div className="mt-5">
-          <div className={pillRow}>
-            {lunchDays.map((d, i) => (
-              <button
-                key={d.id}
-                type="button"
-                onClick={() => setPickedDay(i)}
-                aria-pressed={dayIndex === i}
-                className={pillClass(dayIndex === i, "sm")}
-              >
-                {d.label}
-              </button>
-            ))}
-          </div>
-          {isSunday && dayIndex === 0 && (
-            <p className="mt-4 text-center text-sm text-ink-soft">
-              В неделя сме затворени. Ето менюто за понеделник.
+          {view.week.length > 0 && (
+            <div className={pillRow} role="group" aria-label={t.menu.lunch}>
+              {view.week.map((d) => (
+                <button
+                  key={d.date}
+                  type="button"
+                  onClick={() => setPickedDay(d.date)}
+                  aria-pressed={day?.date === d.date}
+                  className={pillClass(day?.date === d.date, "sm")}
+                >
+                  {d.isToday ? t.menu.today : t.weekShort[d.weekday]}
+                  <span className="ml-1 font-normal opacity-75">{d.date.slice(8, 10)}.{d.date.slice(5, 7)}</span>
+                </button>
+              ))}
+            </div>
+          )}
+          {!view.todayPublished && (
+            <p role="status" className="mx-auto mt-5 max-w-2xl rounded-xl border border-line bg-cream-soft px-5 py-4 text-center text-sm text-ink-soft">
+              {t.menu.notPublished}
             </p>
+          )}
+          {day && !showingToday && (
+            <p className="mt-4 text-center text-sm text-ink-soft">{t.menu.otherDayInfo}</p>
           )}
         </div>
       )}
@@ -109,26 +101,11 @@ export function MenuTabs() {
             transition={{ duration: 0.25, ease: [0.22, 1, 0.36, 1] }}
             className="mx-auto grid max-w-[1200px] grid-cols-1 gap-4 sm:grid-cols-2 sm:gap-6 lg:grid-cols-3"
           >
-            {items.map((item, i) => (
-              <DishCard
-                key={`${i}-${item.name}`}
-                item={item}
-                entry={findMenuEntry(
-                  isLunch ? lunchEntryId(day, item) : sectionEntryId(section.key, item)
-                )}
-              />
+            {dishes.map((dish) => (
+              <DishCard key={dish.id} dish={dish} unavailableLabel={unavailableLabel} />
             ))}
           </motion.div>
         </AnimatePresence>
-      </div>
-
-      <div className="mt-16 text-center">
-        <a
-          href={siteConfig.menuPdfUrl}
-          className="inline-block rounded-full border border-line px-7 py-3.5 text-sm font-semibold text-ink transition-colors duration-200 hover:border-terracotta hover:text-terracotta"
-        >
-          Пълно меню (PDF)
-        </a>
       </div>
     </div>
   );

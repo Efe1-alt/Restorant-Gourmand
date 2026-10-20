@@ -8,22 +8,33 @@ import { motion } from "framer-motion";
 import { ShoppingBasket } from "lucide-react";
 import { siteConfig } from "@/lib/site-config";
 import { useCart } from "@/lib/cart";
+import { useLocale, useT } from "@/lib/locale-context";
+import { href as routeHref, switchLocalePath } from "@/lib/routes";
 
-// Anchor секции (#home, #about, ...) съществуват само на homepage-а. Когато
-// сме на друг route (напр. /menu), трябва да сочат обратно към "/#id",
-// иначе не правят нищо (няма такъв id на текущата страница).
-function resolveHref(href: string, isHome: boolean) {
-  if (href.startsWith("#")) return isHome ? href : `/${href}`;
+// Anchor секции (#home, #about, ...) съществуват само на началната страница.
+// От друг route сочат обратно към "/#id" ("/en#id" на английски).
+function resolveHref(href: string, isHome: boolean, home: string) {
+  if (href.startsWith("#")) return isHome ? href : `${home === "/" ? "" : home}/${href}`.replace("//", "/");
   return href;
 }
 
 export function Navbar() {
   const pathname = usePathname();
-  const isHome = pathname === "/";
+  const locale = useLocale();
+  const t = useT().nav;
+  const home = routeHref("home", locale);
+  const isHome = pathname === home;
   const [scrolled, setScrolled] = useState(false);
   const [open, setOpen] = useState(false);
   const { count, openCart } = useCart();
-  const navLinks = siteConfig.navigation;
+  const navLinks = [
+    { label: t.home, href: "#home" },
+    { label: t.about, href: "#about" },
+    { label: t.menu, href: routeHref("menu", locale) },
+    { label: t.gallery, href: "#gallery" },
+    { label: t.contact, href: "#contact" },
+  ];
+  const otherLocale = locale === "bg" ? "en" : "bg";
   // Прозрачен navbar с бял текст важи само за hero-а на homepage-а, преди
   // скрол. Всеки друг route няма full-bleed тъмна снимка зад navbar-а.
   const light = isHome && !scrolled;
@@ -47,13 +58,13 @@ export function Navbar() {
       }`}
     >
       <div className="relative mx-auto flex max-w-7xl items-center justify-between px-5 py-5 sm:px-8">
-        <Link href={resolveHref("#home", isHome)} className="flex items-center">
+        <Link href={resolveHref("#home", isHome, home)} className="flex items-center">
           <Image
             src="/logo.png"
             alt={siteConfig.name}
             width={645}
             height={300}
-            priority
+            preload
             className="h-11 w-auto lg:h-14"
           />
         </Link>
@@ -65,7 +76,7 @@ export function Navbar() {
             return (
               <Link
                 key={item.href}
-                href={resolveHref(item.href, isHome)}
+                href={resolveHref(item.href, isHome, home)}
                 className={`group relative text-[13px] font-medium uppercase tracking-[0.08em] transition-colors duration-300 ${
                   light ? "hero-text-shadow text-white/85 hover:text-white" : "text-ink-soft hover:text-ink"
                 } ${active ? "text-terracotta" : ""}`}
@@ -78,10 +89,21 @@ export function Navbar() {
         </nav>
 
         <div className="flex items-center gap-3">
+          <a
+            href={switchLocalePath(pathname, otherLocale)}
+            hrefLang={otherLocale}
+            lang={otherLocale}
+            aria-label={t.otherLanguage}
+            className={`flex h-11 min-w-11 items-center justify-center rounded-full border px-3 text-xs font-semibold tracking-wide transition-colors duration-300 ${
+              light ? "hero-text-shadow border-white/50 text-white hover:border-white" : "border-line text-ink-soft hover:border-terracotta hover:text-terracotta"
+            }`}
+          >
+            {t.otherLanguageShort}
+          </a>
           <button
             type="button"
             onClick={openCart}
-            aria-label={count > 0 ? `Количка, ${count} в количката` : "Количка"}
+            aria-label={count > 0 ? t.cartWithCount(count) : t.cart}
             className="relative flex h-11 w-11 items-center justify-center rounded-full bg-terracotta text-white transition-all duration-300 hover:-translate-y-0.5 hover:bg-terracotta-dark hover:shadow-lg hover:shadow-black/10"
           >
             <ShoppingBasket aria-hidden className="h-5 w-5" />
@@ -95,7 +117,7 @@ export function Navbar() {
             )}
           </button>
           <button
-            aria-label="Меню"
+            aria-label={t.menuButton}
             aria-expanded={open}
             onClick={() => setOpen((v) => !v)}
             className={`flex h-11 w-11 items-center justify-center rounded-full border transition-colors duration-300 lg:hidden ${
@@ -104,7 +126,7 @@ export function Navbar() {
                 : "border-line text-ink"
             }`}
           >
-            <span className="sr-only">Отвори меню</span>
+            <span className="sr-only">{t.openMenu}</span>
             {open ? "✕" : "☰"}
           </button>
         </div>
@@ -116,7 +138,7 @@ export function Navbar() {
             {navLinks.map((item) => (
               <li key={item.href}>
                 <Link
-                  href={resolveHref(item.href, isHome)}
+                  href={resolveHref(item.href, isHome, home)}
                   onClick={() => setOpen(false)}
                   className="block rounded-lg px-2 py-3 text-base text-ink-soft hover:bg-cream-soft hover:text-terracotta"
                 >
