@@ -14,6 +14,7 @@ flows: `../baseline-screenshots/backend-2026-10-20/` (outside the repo).
 | Needs | What's verified without it | What's still unverified |
 |---|---|---|
 | `STRIPE_SECRET_KEY` (test) + `stripe login` + `STRIPE_WEBHOOK_SECRET` | Webhook signature checks (real Stripe library), idempotent event handling, authorise → New, capture on Accept, void on Reject, session expiry, both late-payment outcomes, full/partial refunds counted only on Stripe confirmation, Dashboard refunds recorded — all with Stripe's API mocked (`tests/db/payments.test.ts`) | A real Checkout session in test mode, the hosted payment page, real webhook delivery via `npm run stripe:listen`, a real capture/refund. Card payment is hidden on the site until a key exists. |
+| ↳ ready for the keys | `tests/e2e/card.spec.ts` (Playwright, desktop): a card order through `/porachka` and Stripe's hosted page with the test card 4242…, absent from the admin queue until authorised; „Приеми“ captures (PaymentIntent `succeeded`); „Откажи“ voids (`canceled`) and returns portions; an expired session abandons the order and returns portions; a partial then full refund from the order page, each confirmed by processed `refund.*` webhook events and matched to Stripe's refunds. It refuses anything but `sk_test_`/`rk_test_` keys and is **skipped** when the key or webhook secret is missing (8 skipped, 20 Oct). `playwright.config.ts` now also reads `.env.local`. | **Not run yet** — on 20 Oct there was no `.env.local` and the Stripe CLI was not logged in. To run: add the key, `stripe login`, `npm run stripe:listen`, copy `whsec_…` into `.env.local`, restart `npm run dev`, then `npx playwright test tests/e2e/card.spec.ts --project=desktop`. |
 | `RESEND_API_KEY`, `EMAIL_FROM` (+ verified sending domain) | Every email is queued, rendered and logged; failures keep the error, back off and can be retried from the admin; one email per order event; 10-minute reminder sent once | Actual delivery, Reply-To, SPF/DKIM for orders@gourmand.bg (needs Cloudflare DNS records — not touched) |
 
 ## Owner must confirm (all seeded, all editable in the admin)
@@ -96,11 +97,17 @@ flows: `../baseline-screenshots/backend-2026-10-20/` (outside the repo).
 - **Cart** persists in `localStorage`; lunch items from another day are dropped.
 - **Reload behaviour**: the existing "reload returns to the home page" script is
   kept, except on checkout and order-status pages.
+- **Background jobs** run from Supabase pg_cron, which calls `/api/cron` every
+  minute through pg_net (URL and secret in Vault). There's no Vercel Cron, so
+  any Vercel plan works. Vercel's Hobby plan had rejected the every-minute
+  `vercel.json` cron and failed the first preview build of PR #1.
 - **Images** stay unoptimised (already sized WebP) to avoid optimiser cost.
 - Local Supabase runs on ports **553xx** because another local project uses 543xx.
 - `supabase/schema.sql` (with the `reservations` table) was deleted; migrations replace it.
 
 ## Still to do before launch (needs your go-ahead)
+
+Staging first: follow [staging-deploy.md](staging-deploy.md).
 
 1. Add Stripe test keys, run a real card order end to end, then repeat on a
    separate Stripe sandbox; switch to a restricted live key only at launch.

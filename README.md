@@ -34,9 +34,13 @@ in chat or commits:
 - `RESEND_API_KEY`, `EMAIL_FROM` — without them emails stay in the outbox
   as "failed" and can be retried from Админ → Имейли.
 
-Background jobs: `npm run cron` calls `/api/cron` every minute (owner
-reminders, email retries, expired holds). In production Vercel Cron does this
-(`vercel.json`); pg_cron also expires holds and anonymises old orders.
+Background jobs: Supabase pg_cron calls the app's `/api/cron` every minute
+(owner reminders, email retries, expired holds) through pg_net, with the URL
+and secret in Supabase Vault. Locally `npm run db:env` points it at
+`http://host.docker.internal:3000`. pg_cron also expires holds and anonymises
+old orders directly in the database. No Vercel Cron, so any Vercel plan works.
+
+Staging deploy steps: [docs/staging-deploy.md](docs/staging-deploy.md).
 
 ## Database
 

@@ -1,4 +1,5 @@
-// Local stand-in for Vercel Cron: calls /api/cron every minute.
+// Optional: calls /api/cron every minute from the host. Normally not needed —
+// pg_cron already does this (see the app_cron_via_pg_net migration).
 import { readFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";

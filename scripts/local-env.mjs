@@ -52,3 +52,14 @@ const body = [
 ].join("\n");
 writeFileSync(file, body, { mode: 0o600 });
 console.log(`Wrote ${file} (Supabase at ${status.API_URL}).`);
+
+// pg_cron calls the dev server's /api/cron every minute (from inside Docker
+// the host machine is host.docker.internal). Ignored if the migration that
+// adds private.set_app_cron_target hasn't run yet.
+try {
+  const sql = `select private.set_app_cron_target('http://host.docker.internal:3000/api/cron', '${env.CRON_SECRET}')`;
+  execFileSync("npx", ["supabase", "db", "query", "--local", sql], { cwd: root, stdio: "ignore" });
+  console.log("pg_cron → http://host.docker.internal:3000/api/cron every minute.");
+} catch {
+  console.log("Skipped pg_cron target (run migrations, then `npm run db:env`).");
+}
