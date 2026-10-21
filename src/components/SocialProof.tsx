@@ -3,12 +3,15 @@
 import { useEffect, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { ScrollReveal } from "./ScrollReveal";
+import { useT } from "@/lib/locale-context";
 import { siteConfig } from "@/lib/site-config";
 
 function Stars({ rating, small = false }: { rating: number; small?: boolean }) {
+  const t = useT().reviews;
   return (
     <div
-      aria-label={`${rating} от 5 звезди`}
+      role="img"
+      aria-label={t.stars(rating)}
       className={`flex gap-1 text-gold ${small ? "text-xs" : ""}`}
     >
       {Array.from({ length: 5 }).map((_, i) => (
@@ -18,8 +21,9 @@ function Stars({ rating, small = false }: { rating: number; small?: boolean }) {
   );
 }
 
-export function SocialProof() {
-  const { title, googleUrl, testimonials } = siteConfig.reviews;
+export function SocialProof({ title }: { title: string }) {
+  const { googleUrl, testimonials } = siteConfig.reviews;
+  const t = useT().reviews;
 
   // 3 отзива видими наведнъж на desktop/tablet, 1 на мобилно.
   const [perPage, setPerPage] = useState(3);
@@ -59,7 +63,7 @@ export function SocialProof() {
           <button
             type="button"
             onClick={() => goTo(page - 1)}
-            aria-label="Предишни отзиви"
+            aria-label={t.previous}
             className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-cream/20 text-cream transition-colors duration-200 hover:border-gold hover:text-gold"
           >
             ←
@@ -81,7 +85,7 @@ export function SocialProof() {
                     key={t.quote}
                     className="rounded-2xl border border-cream/15 p-6 transition-all duration-300 ease-out hover:-translate-y-0.5 hover:scale-[1.02] hover:shadow-lg hover:shadow-black/20"
                   >
-                    <p className="leading-relaxed text-cream/90">&ldquo;{t.quote}&rdquo;</p>
+                    <p lang="bg" className="leading-relaxed text-cream/90">&ldquo;{t.quote}&rdquo;</p>
                     <Stars rating={t.rating} small />
                     <p className="mt-2 text-sm font-semibold text-gold">{t.author}</p>
                   </div>
@@ -93,7 +97,7 @@ export function SocialProof() {
           <button
             type="button"
             onClick={() => goTo(page + 1)}
-            aria-label="Следващи отзиви"
+            aria-label={t.next}
             className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-cream/20 text-cream transition-colors duration-200 hover:border-gold hover:text-gold"
           >
             →
@@ -106,7 +110,7 @@ export function SocialProof() {
               key={i}
               type="button"
               onClick={() => goTo(i)}
-              aria-label={`Отзиви, страница ${i + 1}`}
+              aria-label={t.page(i + 1)}
               aria-current={i === page}
               className="group px-1 py-4"
             >
@@ -126,7 +130,7 @@ export function SocialProof() {
             rel="noreferrer"
             className="text-sm font-semibold text-cream transition-colors duration-200 hover:text-gold"
           >
-            Виж всички отзиви в Google
+            {t.all}
           </a>
         </div>
       </div>

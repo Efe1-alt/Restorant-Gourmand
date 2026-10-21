@@ -2,9 +2,13 @@
 
 import Image from "next/image";
 import { motion } from "framer-motion";
+import { getContent } from "@/lib/content";
+import { href, type Locale } from "@/lib/routes";
 import { siteConfig } from "@/lib/site-config";
 
-export function Hero() {
+export function Hero({ locale }: { locale: Locale }) {
+  const c = getContent(locale);
+  const menuHref = href("menu", locale);
   return (
     <section
       id="home"
@@ -12,7 +16,6 @@ export function Hero() {
     >
       <div
         className="absolute inset-0"
-        style={{ transform: siteConfig.heroImage.flipped ? "scaleX(-1)" : undefined }}
       >
         <motion.div
           initial={{ scale: 1 }}
@@ -24,7 +27,7 @@ export function Hero() {
             src={siteConfig.heroImage.url}
             alt=""
             fill
-            priority
+            preload
             sizes="100vw"
             className="object-cover"
             style={{
@@ -52,7 +55,7 @@ export function Hero() {
             transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
             className="hero-copy-shadow mb-5 text-[11px] font-semibold uppercase tracking-[0.18em] text-gold sm:text-[13px]"
           >
-            {siteConfig.heroEyebrow}
+            {c.heroEyebrow}
           </motion.p>
 
           <motion.h1
@@ -61,7 +64,7 @@ export function Hero() {
             transition={{ duration: 0.9, delay: 0.12, ease: [0.22, 1, 0.36, 1] }}
             className="hero-copy-shadow font-serif-heading text-[length:min(8vw,32px)] font-medium leading-[0.94] text-white sm:text-[45px] lg:text-[50px] xl:text-[58px] 2xl:text-[72px]"
           >
-            {siteConfig.heroHeadlineLines.map((line) => (
+            {c.heroHeadlineLines.map((line) => (
               <span key={line} className="block">
                 {line}
               </span>
@@ -74,7 +77,7 @@ export function Hero() {
             transition={{ duration: 0.9, delay: 0.24, ease: [0.22, 1, 0.36, 1] }}
             className="hero-desc-shadow mt-6 max-w-2xl text-balance text-[15px] leading-relaxed text-white/90 sm:text-[17px]"
           >
-            {siteConfig.heroDescription}
+            {c.heroDescription}
           </motion.p>
 
           <motion.div
@@ -84,16 +87,16 @@ export function Hero() {
             className="mt-10 flex flex-wrap items-center gap-x-8 gap-y-4"
           >
             <a
-              href="/menu"
+              href={menuHref}
               className="rounded-full bg-terracotta px-8 py-4 text-sm font-semibold text-cream shadow-lg shadow-black/20 transition-all duration-300 hover:-translate-y-0.5 hover:bg-terracotta-dark hover:shadow-xl"
             >
-              Поръчай онлайн
+              {c.heroOrder}
             </a>
             <a
-              href="/menu"
+              href={menuHref}
               className="hero-copy-shadow group inline-flex items-center gap-1.5 text-sm font-semibold text-white transition-colors duration-300 hover:text-gold"
             >
-              Виж менюто
+              {c.heroMenu}
             </a>
           </motion.div>
 
@@ -117,7 +120,7 @@ export function Hero() {
               <path d="M12 21s-7-6.2-7-11.5a7 7 0 0 1 14 0C19 14.8 12 21 12 21Z" />
               <circle cx="12" cy="9.5" r="2.5" />
             </svg>
-            {siteConfig.heroLocation}
+            {c.heroLocation}
           </motion.p>
         </div>
       </div>

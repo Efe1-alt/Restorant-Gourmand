@@ -1,86 +1,36 @@
-// PRIVATE CONCEPT DEMO за outreach към Gourmand (Пловдив) — не е публикуван
-// и не се представя никъде като официален сайт, докато собствениците не
-// одобрят и не поемат проекта официално.
+// Gourmand (Пловдив) — business details used across the site. Opening and
+// ordering hours, delivery fees and other ordering rules live in the database
+// and are edited in the admin. Marketing copy per language: src/lib/content.ts.
 //
-// Gourmand е квартално място за домашна храна в Кючук Париж, до Събота пазар —
-// работи през деня, за вкъщи и с доставка.
+// ПОТВЪРДИ С КЛИЕНТА преди пускане: адрес и телефон (docs/backend-scope.md).
+// Structured data (JSON-LD) is built only from the fields below.
 
 export const siteConfig = {
   name: "Gourmand",
-  tagline: "Домашна храна за вкъщи и с доставка",
-  heroEyebrow: "Домашна храна · За вкъщи · Пловдив",
-  // Всеки елемент е отделен ред в Hero.tsx.
-  heroHeadlineLines: ["Сготвено като у дома"],
-  // Малкият ред с иконата за локация под бутоните в hero.
-  heroLocation: "ул. „Гевгели“ 44 · до Събота пазар",
-  // \u00a0 държи тирето на първия ред, вместо да започва втория.
-  heroDescription:
-    "Домашни ястия от истински продукти, приготвени всеки ден\u00a0– за вкъщи, за офиса или на място на ул. „Гевгели“.",
+  city: "Пловдив",
+  cuisine: "Домашна храна",
 
   // Фасадата на Gourmand — тента и неонов надпис над входа.
   heroImage: {
     url: "/hero-storefront.jpg",
-    flipped: false,
     // На тесни екрани кропът остава около неона и входа.
     objectPosition: "40% 50%",
   },
-
   // Залата на Gourmand — зелената стена с бар плот и столчета.
-  aboutImage: {
-    url: "/gallery/restaurant-interior.jpg",
-  },
-
-  city: "Пловдив",
-  cuisine: "Домашна храна",
-  positioning: "casual-premium", // над средното, не семеен format
-  priceRange: "$$–$$$",
+  aboutImage: { url: "/gallery/restaurant-interior.jpg" },
 
   contact: {
     phone: "087 892 0254",
-    // TODO: реален имейл — да се добави, когато клиентът го предостави.
+    // E.164 for tel: links and structured data.
+    phoneE164: "+359878920254",
     address: "ул. „Гевгели“ 44, Пловдив (до Събота пазар)",
-    // Разбит адрес за schema.org (JSON-LD в app/page.tsx).
     streetAddress: "ул. „Гевгели“ 44",
     addressLocality: "Пловдив",
     addressCountry: "BG",
-    // Търсене за Google Maps — линка и вградената карта в Контакти.
     mapsQuery: "ул. Гевгели 44, Пловдив",
     mapsUrl: "https://www.google.com/maps/search/?api=1&query=%D1%83%D0%BB.%20%D0%93%D0%B5%D0%B2%D0%B3%D0%B5%D0%BB%D0%B8%2044%2C%20%D0%9F%D0%BB%D0%BE%D0%B2%D0%B4%D0%B8%D0%B2",
     facebookUrl: "https://www.facebook.com/gourmandplovdiv",
     instagramUrl: "https://www.instagram.com/gourmand_pld/",
-  },
-
-  hours: [
-    { day: "Понеделник – Петък", time: "08:00 – 19:00" },
-    { day: "Събота", time: "08:00 – 14:30" },
-    { day: "Неделя", time: "Почивен ден" },
-  ],
-
-  // Същото работно време като hours, но в числа — от него се генерират
-  // часовете за поръчка. Индекс = Date.getDay() (0 = неделя), null = затворено.
-  // Дръж в синхрон с hours.
-  orderHours: [
-    null,
-    { open: "08:00", close: "19:00" },
-    { open: "08:00", close: "19:00" },
-    { open: "08:00", close: "19:00" },
-    { open: "08:00", close: "19:00" },
-    { open: "08:00", close: "19:00" },
-    { open: "08:00", close: "14:30" },
-  ] as ({ open: string; close: string } | null)[],
-  // ПОТВЪРДИ С КЛИЕНТА: работното време за поръчки (orderHours по-горе) и
-  // всички стойности тук.
-  ordering: {
-    // Колко време преди затваряне спираме да приемаме поръчки.
-    lastOrderMinutesBeforeClose: 30,
-    // Най-ранният час за поръчка "за конкретен час" спрямо сега.
-    minLeadMinutes: 45,
-    // ПОТВЪРДИ С КЛИЕНТА: цена за доставка в центове (напр. 250 = 2,50 €).
-    // null = „Уточнява се по телефона“ и не влиза в общата сума.
-    deliveryFeeCents: null as number | null,
-    // ПОТВЪРДИ С КЛИЕНТА: минимална сума на поръчката в центове (напр. 1000 =
-    // 10,00 €). null = без минимум.
-    minOrderCents: null as number | null,
   },
 
   reviews: {
@@ -128,13 +78,4 @@ export const siteConfig = {
     ],
   },
 
-  menuPdfUrl: "#", // TODO: линк към пълно меню/PDF
-
-  navigation: [
-    { label: "Начало", href: "#home" },
-    { label: "За нас", href: "#about" },
-    { label: "Меню", href: "/menu" },
-    { label: "Галерия", href: "#gallery" },
-    { label: "Контакти", href: "#contact" },
-  ],
 } as const;
